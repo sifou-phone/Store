@@ -1,38 +1,39 @@
   </main>
   <section class="trust-strip">
     <div class="container trust-row">
-      <div class="trust-item"><%- icon('cash') %><div><strong>الدفع عند الاستلام</strong><span>لا تدفع أي شيء مسبقاً</span></div></div>
-      <div class="trust-item"><%- icon('truck') %><div><strong>توصيل لكل الولايات</strong><span>للمنزل أو لمكتب التوصيل</span></div></div>
-      <div class="trust-item"><%- icon('eye') %><div><strong>افحص قبل الدفع</strong><span>تأكد من طلبك عند الاستلام</span></div></div>
-      <div class="trust-item"><%- icon('shield') %><div><strong>منتجات مضمونة</strong><span>استبدال في حال وجود عيب</span></div></div>
+      <div class="trust-item"><%- icon('cash') %><div><strong><%= t('trust_cod_t') %></strong><span><%= t('trust_cod_d') %></span></div></div>
+      <div class="trust-item"><%- icon('truck') %><div><strong><%= t('trust_ship_t') %></strong><span><%= t('trust_ship_d') %></span></div></div>
+      <div class="trust-item"><%- icon('eye') %><div><strong><%= t('trust_inspect_t') %></strong><span><%= t('trust_inspect_d') %></span></div></div>
+      <div class="trust-item"><%- icon('shield') %><div><strong><%= t('trust_guarantee_t') %></strong><span><%= t('trust_guarantee_d') %></span></div></div>
     </div>
   </section>
   <footer class="site-footer">
     <div class="container footer-grid">
       <div class="footer-brand">
         <img src="/img/logo.svg" alt="<%= settings.store_name %>" width="96" height="96">
-        <p><%= settings.tagline %></p>
+        <p><%= loc(settings, 'tagline') %></p>
       </div>
       <div>
-        <h3>الأقسام</h3>
+        <h3><%= t('categories') %></h3>
         <ul>
           <% for (const c of (locals.categories || [])) { %><li><a href="/products?c=<%= c.slug %>"><%= c.name %></a></li><% } %>
         </ul>
       </div>
       <div>
-        <h3>معلومات</h3>
+        <h3><%= t('info') %></h3>
         <ul>
-          <li><a href="/products">كل المنتجات</a></li>
-          <li><a href="/policy">سياسة التوصيل والإرجاع</a></li>
-          <li><a href="/cart">سلة المشتريات</a></li>
+          <li><a href="/products"><%= t('all_products') %></a></li>
+          <li><a href="/policy"><%= t('policy_title') %></a></li>
+          <li><a href="/cart"><%= t('cart_link') %></a></li>
+          <li><a href="<%= langSwitch.url %>" lang="<%= langSwitch.lang %>"><%= t('switch_lang') %></a></li>
         </ul>
       </div>
       <% if (settings.phone || waLink || settings.address || settings.facebook || settings.instagram || settings.tiktok) { %>
       <div>
-        <h3>تواصل معنا</h3>
+        <h3><%= t('contact') %></h3>
         <ul class="contact-list">
           <% if (settings.phone) { %><li><a href="tel:<%= settings.phone %>"><%- icon('phone') %><span dir="ltr"><%= settings.phone %></span></a></li><% } %>
-          <% if (waLink) { %><li><a href="<%= waLink %>" target="_blank" rel="noopener"><%- icon('whatsapp') %>واتساب</a></li><% } %>
+          <% if (waLink) { %><li><a href="<%= waLink %>" target="_blank" rel="noopener"><%- icon('whatsapp') %><%= t('whatsapp') %></a></li><% } %>
           <% if (settings.address) { %><li><%- icon('map') %><span><%= settings.address %></span></li><% } %>
         </ul>
         <div class="socials">
@@ -43,11 +44,12 @@
       </div>
       <% } %>
     </div>
-    <div class="container footer-bottom">© <%= new Date().getFullYear() %> <%= settings.store_name %> — جميع الحقوق محفوظة</div>
+    <div class="container footer-bottom">© <%= new Date().getFullYear() %> <%= settings.store_name %> — <%= t('rights') %></div>
   </footer>
   <% if (waLink) { %>
-  <a class="wa-float" href="<%= waLink %>" target="_blank" rel="noopener" aria-label="راسلنا على واتساب"><%- icon('whatsapp') %></a>
+  <a class="wa-float" href="<%= waLink %>" target="_blank" rel="noopener" aria-label="<%= t('wa_float') %>"><%- icon('whatsapp') %></a>
   <% } %>
-  <script src="/js/shop.js?v=1" defer></script>
+  <script type="application/json" id="i18n-data"><%- json(clientStrings) %></script>
+  <script src="/js/shop.js?v=2" defer></script>
 </body>
 </html>

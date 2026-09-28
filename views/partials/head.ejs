@@ -1,15 +1,16 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="<%= lang %>" dir="<%= dir %>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title><%= title ? `${title} | ${settings.store_name}` : `${settings.store_name} — ${settings.tagline}` %></title>
-  <meta name="description" content="<%= locals.description || settings.tagline %>">
+  <title><%= title ? `${title} | ${settings.store_name}` : `${settings.store_name} — ${loc(settings, 'tagline')}` %></title>
+  <meta name="description" content="<%= locals.description || loc(settings, 'tagline') %>">
   <% if (locals.noindex) { %><meta name="robots" content="noindex"><% } %>
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="<%= lang === 'fr' ? 'fr_DZ' : 'ar_DZ' %>">
   <meta property="og:site_name" content="<%= settings.store_name %>">
   <meta property="og:title" content="<%= title || settings.store_name %>">
-  <meta property="og:description" content="<%= locals.description || settings.tagline %>">
+  <meta property="og:description" content="<%= locals.description || loc(settings, 'tagline') %>">
   <meta property="og:image" content="<%= baseUrl %><%= locals.ogImage || '/img/logo.png' %>">
   <meta name="theme-color" content="#f4f3ef">
   <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
@@ -17,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cutive+Mono&family=Tajawal:wght@400;500;700;800&display=swap">
-  <link rel="stylesheet" href="/css/style.css?v=1">
+  <link rel="stylesheet" href="/css/style.css?v=2">
   <% if (settings.fb_pixel_id) { %>
   <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
@@ -25,39 +26,44 @@
   </script>
   <% } %>
 </head>
-<body data-currency="<%= settings.currency %>">
-  <% if (settings.announcement) { %>
-  <div class="announce"><%= settings.announcement %></div>
+<body data-currency="<%= lang === 'fr' && settings.currency === 'دج' ? 'DA' : settings.currency %>" data-lang="<%= lang %>">
+  <% if (loc(settings, 'announcement')) { %>
+  <div class="announce"><%= loc(settings, 'announcement') %></div>
   <% } %>
   <header class="site-header">
     <div class="container header-row">
-      <button class="icon-btn menu-btn" type="button" aria-label="القائمة" data-menu-toggle><%- icon('menu') %></button>
+      <button class="icon-btn menu-btn" type="button" aria-label="<%= t('menu') %>" data-menu-toggle><%- icon('menu') %></button>
       <a class="brand" href="/" aria-label="<%= settings.store_name %>">
         <img src="/img/logo.svg" alt="" width="52" height="52">
         <span class="brand-name">sifou phone</span>
       </a>
       <form class="search" action="/products" role="search">
         <%- icon('search') %>
-        <input type="search" name="q" placeholder="ابحث عن هاتف، سماعة، شاحن..." value="<%= locals.q || '' %>" aria-label="بحث">
+        <input type="search" name="q" placeholder="<%= t('search_placeholder') %>" value="<%= locals.q || '' %>" aria-label="<%= t('search') %>">
       </form>
-      <a class="icon-btn cart-btn" href="/cart" aria-label="السلة">
-        <%- icon('cart') %>
-        <span class="cart-count" data-cart-count hidden>0</span>
-      </a>
+      <div class="header-actions">
+        <a class="lang-btn" href="<%= langSwitch.url %>" hreflang="<%= langSwitch.lang %>" lang="<%= langSwitch.lang %>" title="<%= t('switch_lang') %>" aria-label="<%= t('switch_lang') %>">
+          <%- icon('globe') %><span><%= t('switch_lang_short') %></span>
+        </a>
+        <a class="icon-btn cart-btn" href="/cart" aria-label="<%= t('cart') %>">
+          <%- icon('cart') %>
+          <span class="cart-count" data-cart-count hidden>0</span>
+        </a>
+      </div>
     </div>
     <nav class="cat-nav" data-menu>
       <div class="container">
         <form class="search mobile-search" action="/products" role="search">
           <%- icon('search') %>
-          <input type="search" name="q" placeholder="ابحث عن منتج..." aria-label="بحث">
+          <input type="search" name="q" placeholder="<%= t('search_short') %>" aria-label="<%= t('search') %>">
         </form>
       </div>
       <div class="container cat-nav-row">
-        <a href="/products" class="<%= path === '/products' && !locals.currentCat && !locals.q ? 'active' : '' %>">كل المنتجات</a>
+        <a href="/products" class="<%= path === '/products' && !locals.currentCat && !locals.q ? 'active' : '' %>"><%= t('all_products') %></a>
         <% for (const c of (locals.categories || [])) { %>
           <a href="/products?c=<%= c.slug %>" class="<%= locals.currentCat && currentCat.id === c.id ? 'active' : '' %>"><%= c.name %></a>
         <% } %>
-        <a href="/policy">التوصيل والإرجاع</a>
+        <a href="/policy"><%= t('delivery_returns') %></a>
       </div>
     </nav>
   </header>

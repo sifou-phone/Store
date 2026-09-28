@@ -2,7 +2,7 @@
   <a class="card-media" href="/p/<%= p.slug %>">
     <img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy" width="400" height="400">
     <% if (p.discount) { %><span class="badge badge-sale">-<%= p.discount %>%</span><% } %>
-    <% if (!p.inStock) { %><span class="badge badge-out">نفد المخزون</span><% } %>
+    <% if (!p.inStock) { %><span class="badge badge-out"><%= t('out_of_stock') %></span><% } %>
   </a>
   <div class="card-body">
     <h3 class="card-title"><a href="/p/<%= p.slug %>"><%= p.name %></a></h3>
@@ -10,6 +10,6 @@
       <span class="price"><%= price(p.price) %></span>
       <% if (p.discount) { %><s class="price-old"><%= price(p.compare_price) %></s><% } %>
     </div>
-    <a class="btn btn-dark btn-block btn-sm" href="/p/<%= p.slug %>#order"><%= p.inStock ? 'اطلب الآن' : 'عرض المنتج' %></a>
+    <a class="btn btn-dark btn-block btn-sm" href="/p/<%= p.slug %>#order"><%= p.inStock ? t('order_now') : t('view_product') %></a>
   </div>
 </article>

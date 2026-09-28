@@ -5,6 +5,7 @@ const { getSettings, UPLOAD_DIR } = require('./src/db');
 const { ensureAdminPassword } = require('./src/auth');
 const { formatPrice, formatDate, ORDER_STATUSES } = require('./src/util');
 const { icon } = require('./src/icons');
+const { LANGS, translator, localize, clientStrings } = require('./src/i18n');
 
 ensureAdminPassword();
 
@@ -28,10 +29,34 @@ app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '30d' }));
 app.use(express.urlencoded({ extended: false, limit: '200kb' }));
 app.use(express.json({ limit: '200kb' }));
 
+// Storefront language: ?lang=fr|ar switches it and is remembered in a cookie.
+// The owner dashboard is always Arabic.
+function pickLanguage(req, res) {
+  if (req.path.startsWith('/admin')) return 'ar';
+  const q = String(req.query.lang || '');
+  if (LANGS.includes(q)) {
+    res.cookie('lang', q, { maxAge: 365 * 864e5, sameSite: 'lax', path: '/' });
+    return q;
+  }
+  const m = /(?:^|;\s*)lang=(ar|fr)(?:;|$)/.exec(req.headers.cookie || '');
+  return m ? m[1] : 'ar';
+}
+
 app.use((req, res, next) => {
   const settings = getSettings();
+  const lang = pickLanguage(req, res);
+  const other = lang === 'fr' ? 'ar' : 'fr';
+  const switchUrl = new URL(req.originalUrl, 'http://x');
+  switchUrl.searchParams.set('lang', other);
+
+  res.locals.lang = lang;
+  res.locals.dir = lang === 'fr' ? 'ltr' : 'rtl';
+  res.locals.t = translator(lang);
+  res.locals.loc = localize(lang);
+  res.locals.clientStrings = clientStrings(lang);
+  res.locals.langSwitch = { lang: other, url: switchUrl.pathname + switchUrl.search };
   res.locals.settings = settings;
-  res.locals.price = (v) => formatPrice(v, settings.currency);
+  res.locals.price = (v) => formatPrice(v, settings.currency, lang);
   res.locals.formatDate = formatDate;
   res.locals.STATUSES = ORDER_STATUSES;
   res.locals.icon = icon;
@@ -49,14 +74,15 @@ app.use('/admin', require('./src/routes/admin'));
 app.use('/', require('./src/routes/shop'));
 
 app.use((req, res) => {
-  res.status(404).render('shop/404', { title: 'الصفحة غير موجودة' });
+  res.status(404).render('shop/404', { title: res.locals.t('not_found_title') });
 });
 
 app.use((err, req, res, next) => {
   console.error(err);
   if (res.headersSent) return next(err);
-  const message = err.code === 'LIMIT_FILE_SIZE' ? 'حجم الصورة كبير جداً (الحد 5 ميغابايت)' : 'حدث خطأ غير متوقع';
-  res.status(err.status || 500).render('shop/404', { title: 'خطأ', message });
+  const t = res.locals.t || translator('ar');
+  const message = err.code === 'LIMIT_FILE_SIZE' ? 'حجم الصورة كبير جداً (الحد 5 ميغابايت)' : t('error_unexpected');
+  res.status(err.status || 500).render('shop/404', { title: t('error_title'), message });
 });
 
 if (require.main === module) {

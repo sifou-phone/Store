@@ -22,6 +22,16 @@
   </section>
 
   <section class="box">
+    <div class="box-head"><h2>النسخة الفرنسية من المتجر</h2></div>
+    <p class="muted small">النصوص التي تظهر عندما يختار الزبون اللغة الفرنسية من زر اللغة بجانب السلة.</p>
+    <div class="form-grid" dir="ltr" lang="fr">
+      <label class="field span-2"><span>Slogan</span><input name="tagline_fr" value="<%= settings.tagline_fr %>" maxlength="150"></label>
+      <label class="field span-2"><span>Bandeau d’annonce</span><input name="announcement_fr" value="<%= settings.announcement_fr %>" maxlength="150"></label>
+      <label class="field span-2"><span>Politique de retour <small>(un paragraphe par ligne)</small></span><textarea name="policy_text_fr" rows="4"><%= settings.policy_text_fr %></textarea></label>
+    </div>
+  </section>
+
+  <section class="box">
     <div class="box-head"><h2>إشعارات الطلبات على تيليغرام</h2></div>
     <p class="muted small">استلم كل طلب جديد فوراً على هاتفك: أنشئ بوتاً عبر <b dir="ltr">@BotFather</b> وانسخ الـ Token، ثم أرسل أي رسالة للبوت واحصل على Chat ID عبر <b dir="ltr">@userinfobot</b>.</p>
     <div class="form-grid">

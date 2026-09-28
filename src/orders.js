@@ -1,6 +1,7 @@
 const crypto = require('node:crypto');
 const { db, transaction } = require('./db');
-const { normalizePhone, toInt, clean, RELEASED_STATUSES, ORDER_STATUSES } = require('./util');
+const { normalizePhone, toInt, clean, hydrateProduct, RELEASED_STATUSES, ORDER_STATUSES } = require('./util');
+const { translator } = require('./i18n');
 
 const MAX_LINES = 20;
 const MAX_QTY = 20;
@@ -40,7 +41,7 @@ function shippingFor(wilaya, deliveryType, lines) {
  * Validate a checkout payload against current prices and stock and create the
  * order. Prices sent by the browser are never trusted.
  */
-function createOrder(input, ip = '') {
+function createOrder(input, ip = '', t = translator('ar'), lang = 'ar') {
   const errors = {};
   const name = clean(input.customer_name, 80);
   const phone = normalizePhone(input.phone);
@@ -50,19 +51,20 @@ function createOrder(input, ip = '') {
   const address = clean(input.address, 200);
   const notes = clean(input.notes, 500);
 
-  if (name.length < 3) errors.customer_name = 'الرجاء إدخال الاسم الكامل';
-  if (!phone) errors.phone = 'رقم الهاتف غير صحيح (مثال: 0555123456)';
-  if (!wilaya) errors.wilaya = 'اختر الولاية';
-  if (commune.length < 2) errors.commune = 'الرجاء إدخال البلدية';
-  if (deliveryType === 'home' && address.length < 4) errors.address = 'الرجاء إدخال العنوان';
+  if (name.length < 3) errors.customer_name = t('err_name');
+  if (!phone) errors.phone = t('err_phone');
+  if (!wilaya) errors.wilaya = t('err_wilaya');
+  if (commune.length < 2) errors.commune = t('err_commune');
+  if (deliveryType === 'home' && address.length < 4) errors.address = t('err_address');
 
   const lines = [];
   for (const item of normalizeItems(input.items)) {
     const product = productById.get(item.product_id);
     if (!product) {
-      errors.items = 'أحد المنتجات لم يعد متوفراً';
+      errors.items = t('err_product_gone');
       continue;
     }
+    const shown = hydrateProduct(product, lang);
     const variants = product.variants
       .split(',')
       .map((s) => s.trim())
@@ -70,7 +72,7 @@ function createOrder(input, ip = '') {
     let variant = item.variant;
     if (variants.length) {
       if (!variants.includes(variant)) {
-        errors.items = `اختر ${product.variant_label} لـ «${product.name}»`;
+        errors.items = t('err_choose_variant', { label: shown.variant_label, name: shown.name });
         continue;
       }
     } else {
@@ -79,13 +81,13 @@ function createOrder(input, ip = '') {
     if (product.stock != null && product.stock < item.qty) {
       errors.items =
         product.stock > 0
-          ? `الكمية المتوفرة من «${product.name}» هي ${product.stock} فقط`
-          : `«${product.name}» نفد من المخزون`;
+          ? t('err_stock_left', { name: shown.name, n: product.stock })
+          : t('err_sold_out', { name: shown.name });
       continue;
     }
     lines.push({ product, variant, qty: item.qty });
   }
-  if (!lines.length && !errors.items) errors.items = 'السلة فارغة';
+  if (!lines.length && !errors.items) errors.items = t('err_cart_empty');
 
   if (Object.keys(errors).length) return { errors };
 

@@ -4,9 +4,9 @@
   <div class="container narrow">
     <div class="thanks">
       <div class="thanks-icon"><%- icon('check') %></div>
-      <h1>شكراً <%= order.customer_name %>!</h1>
-      <p class="lead">تم استلام طلبك رقم <strong>#<%= order.id %></strong> بنجاح.<br>
-        سنتصل بك قريباً على الرقم <strong dir="ltr"><%= order.phone %></strong> لتأكيد الطلب.</p>
+      <h1><%= t('thanks_hi', { name: order.customer_name }) %></h1>
+      <p class="lead"><%= t('thanks_received', { id: '#' + order.id }) %><br>
+        <%= t('thanks_call', { phone: order.phone }) %></p>
 
       <div class="panel receipt">
         <% for (const it of items) { %>
@@ -15,14 +15,17 @@
             <span><%= price(it.price * it.qty) %></span>
           </div>
         <% } %>
-        <div class="receipt-row muted"><span>التوصيل (<%= order.delivery_type === 'desk' ? 'مكتب التوصيل' : 'للمنزل' %> — <%= order.wilaya_name %>)</span><span><%= order.shipping ? price(order.shipping) : 'مجاني' %></span></div>
-        <div class="receipt-row total"><span>المبلغ عند الاستلام</span><span><%= price(order.total) %></span></div>
+        <div class="receipt-row muted">
+          <span><%= t('shipping_line', { type: order.delivery_type === 'desk' ? t('to_desk') : t('to_home'), wilaya: wilayaName }) %></span>
+          <span><%= order.shipping ? price(order.shipping) : t('free') %></span>
+        </div>
+        <div class="receipt-row total"><span><%= t('amount_due') %></span><span><%= price(order.total) %></span></div>
       </div>
 
-      <p class="muted">الرجاء إبقاء هاتفك مفتوحاً. عدم الرد على اتصال التأكيد قد يؤدي إلى إلغاء الطلب.</p>
+      <p class="muted"><%= t('keep_phone_on') %></p>
       <div class="hero-actions center">
-        <a class="btn btn-dark" href="/products">متابعة التسوق</a>
-        <% if (waLink) { %><a class="btn btn-ghost" href="<%= waLink %>?text=<%= encodeURIComponent(`مرحباً، بخصوص طلبي رقم #${order.id}`) %>" target="_blank" rel="noopener"><%- icon('whatsapp') %>تواصل معنا</a><% } %>
+        <a class="btn btn-dark" href="/products"><%= t('continue_shopping') %></a>
+        <% if (waLink) { %><a class="btn btn-ghost" href="<%= waLink %>?text=<%= encodeURIComponent(t('wa_order_msg', { id: order.id })) %>" target="_blank" rel="noopener"><%- icon('whatsapp') %><%= t('contact_us') %></a><% } %>
       </div>
     </div>
   </div>

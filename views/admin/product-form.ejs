@@ -51,6 +51,27 @@
         <div class="img-grid" data-previews></div>
       </section>
 
+      <details class="box" <%= product.name_fr ? 'open' : '' %>>
+        <summary class="box-head"><h2>النسخة الفرنسية <small class="muted">(Version française — اختياري)</small></h2></summary>
+        <p class="muted small">تظهر للزبائن الذين يختارون اللغة الفرنسية. الحقول الفارغة تظهر بالعربية.</p>
+        <div dir="ltr" lang="fr">
+          <label class="field"><span>Nom du produit</span>
+            <input name="name_fr" value="<%= product.name_fr %>" maxlength="150" placeholder="Ex. : Écouteurs sans fil Buds Pro"></label>
+          <label class="field"><span>Description courte</span>
+            <input name="short_desc_fr" value="<%= product.short_desc_fr %>" maxlength="300"></label>
+          <label class="field"><span>Description complète</span>
+            <textarea name="description_fr" rows="4" maxlength="5000"><%= product.description_fr %></textarea></label>
+          <label class="field"><span>Caractéristiques <small>(une par ligne)</small></span>
+            <textarea name="features_fr" rows="4" maxlength="3000"><%= product.features_fr %></textarea></label>
+          <div class="form-grid">
+            <label class="field"><span>Nom de l’option</span>
+              <input name="variant_label_fr" value="<%= product.variant_label_fr %>" maxlength="30" placeholder="Couleur"></label>
+            <label class="field"><span>Valeurs <small>(même ordre qu’en arabe)</small></span>
+              <input name="variants_fr" value="<%= product.variants_fr %>" maxlength="300" placeholder="Noir, Blanc, Bleu"></label>
+          </div>
+        </div>
+      </details>
+
       <section class="box">
         <div class="box-head"><h2>الخيارات <small class="muted">(اختياري)</small></h2></div>
         <div class="form-grid">

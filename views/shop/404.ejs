@@ -4,11 +4,11 @@
   <div class="container narrow">
     <div class="empty">
       <h1><%= title %></h1>
-      <p><%= locals.message || 'الصفحة التي تبحث عنها غير موجودة أو تم نقلها.' %></p>
+      <p><%= locals.message || t('not_found_text') %></p>
       <% if (locals.back) { %>
-        <button class="btn btn-dark" type="button" onclick="history.back()">رجوع وتصحيح المعلومات</button>
+        <button class="btn btn-dark" type="button" onclick="history.back()"><%= t('back_and_fix') %></button>
       <% } else { %>
-        <a class="btn btn-dark" href="/">العودة للرئيسية</a>
+        <a class="btn btn-dark" href="/"><%= t('back_home') %></a>
       <% } %>
     </div>
   </div>

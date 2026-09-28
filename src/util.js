@@ -11,8 +11,9 @@ const ORDER_STATUSES = {
 // Statuses in which the ordered items are no longer reserved from stock.
 const RELEASED_STATUSES = new Set(['cancelled', 'returned']);
 
-function formatPrice(value, currency = 'دج') {
+function formatPrice(value, currency = 'دج', lang = 'ar') {
   const n = Math.round(Number(value) || 0);
+  if (lang === 'fr') return `${n.toLocaleString('fr-FR')} ${currency === 'دج' ? 'DA' : currency}`;
   // Comma grouping keeps the number in one piece inside right-to-left text.
   return `${n.toLocaleString('en-US')} ${currency}`;
 }
@@ -44,15 +45,29 @@ function splitList(text, sep) {
     .filter(Boolean);
 }
 
-function hydrateProduct(p) {
+/**
+ * Adds display fields to a product row. In French the *_fr columns are used
+ * when filled in. Variant values stay canonical (they are what orders store);
+ * variantLabels holds what the customer sees.
+ */
+function hydrateProduct(p, lang = 'ar') {
   if (!p) return p;
   const images = parseImages(p.images);
+  const fr = lang === 'fr';
+  const pick = (field) => (fr && p[`${field}_fr`] && String(p[`${field}_fr`]).trim() ? p[`${field}_fr`] : p[field]);
+  const variantList = splitList(p.variants, ',');
+  const variantFr = splitList(p.variants_fr, ',');
   return {
     ...p,
+    name: pick('name'),
+    short_desc: pick('short_desc'),
+    description: pick('description'),
+    variant_label: pick('variant_label'),
     imageList: images,
     image: images[0] || '/img/placeholder.svg',
-    featureList: splitList(p.features, /\r?\n/),
-    variantList: splitList(p.variants, ','),
+    featureList: splitList(pick('features'), /\r?\n/),
+    variantList,
+    variantLabels: fr && variantFr.length === variantList.length ? variantFr : variantList,
     inStock: p.stock == null || p.stock > 0,
     discount:
       p.compare_price && p.compare_price > p.price

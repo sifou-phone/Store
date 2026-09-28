@@ -186,3 +186,50 @@ test('admin can create a product with an image', async () => {
   assert.equal((await fetch(base + img)).status, 200);
   assert.equal((await fetch(`${base}/p/${encodeURIComponent(p.slug)}`)).status, 200);
 });
+
+test('all 69 wilayas are available, including the 2026 ones', async () => {
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM wilayas').get().n, 69);
+  const html = await (await fetch(`${base}/p/buds-pro`)).text();
+  assert.match(html, /69 - الأبيض سيدي الشيخ/);
+  assert.match(html, /59 - أفلو/);
+
+  const p = product('charger-25w');
+  const res = await order({ ...customer, phone: '0550998877', wilaya: 68, commune: 'بوسعادة', items: [{ product_id: p.id, qty: 1 }] });
+  assert.equal(res.status, 200);
+  const o = db.prepare('SELECT * FROM orders ORDER BY id DESC LIMIT 1').get();
+  assert.equal(o.wilaya_code, 68);
+  assert.equal(o.wilaya_name, 'بوسعادة');
+});
+
+test('storefront switches to French and remembers it', async () => {
+  const res = await fetch(`${base}/p/buds-pro?lang=fr`);
+  const html = await res.text();
+  assert.match(html, /<html lang="fr" dir="ltr">/);
+  assert.match(html, /Écouteurs sans fil Buds Pro/);
+  assert.match(html, /Confirmer la commande/);
+  assert.match(html, /value="أبيض"[^>]*><span>Blanc<\/span>/);
+  assert.match(html, /68 - Bou Saâda/);
+  const cookie = res.headers.get('set-cookie').split(';')[0];
+  assert.equal(cookie, 'lang=fr');
+
+  const home = await (await fetch(base + '/', { headers: { cookie } })).text();
+  assert.match(home, /Les plus demandés/);
+  assert.match(home, /href="\/\?lang=ar"/);
+
+  const bad = await order({ customer_name: 'a', phone: '1', wilaya: 16, commune: 'x', items: [] }, { cookie });
+  const { errors } = await bad.json();
+  assert.match(errors.phone, /^Numéro de téléphone invalide \(ex\.\s:\s0555123456\)$/);
+});
+
+test('the dashboard saves French product fields', async () => {
+  const cookie = await adminCookie();
+  const csrf = await csrfFor(cookie);
+  const p = product('clear-case');
+  const form = new FormData();
+  for (const [k, v] of Object.entries({ _csrf: csrf, name: p.name, price: String(p.price), active: '1', name_fr: 'Coque premium', variants: 'أسود, أحمر', variants_fr: 'Noir, Rouge' })) form.set(k, v);
+  const res = await fetch(`${base}/admin/products/${p.id}`, { method: 'POST', headers: { cookie }, body: form, redirect: 'manual' });
+  assert.equal(res.status, 303);
+  const html = await (await fetch(`${base}/p/clear-case?lang=fr`)).text();
+  assert.match(html, /Coque premium/);
+  assert.match(html, /<span>Rouge<\/span>/);
+});

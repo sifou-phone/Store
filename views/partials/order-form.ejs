@@ -6,8 +6,8 @@
   data-order-form data-mode="<%= mode %>"
   <% if (single) { %>data-product-id="<%= product.id %>" data-price="<%= product.price %>" data-free-shipping="<%= product.free_shipping %>" data-stock="<%= product.stock ?? '' %>"<% } %>>
   <div class="order-head">
-    <h2><%= single ? 'اطلب الآن' : 'معلومات التوصيل' %></h2>
-    <span class="cod-pill"><%- icon('cash') %>الدفع عند الاستلام</span>
+    <h2><%= single ? t('order_form_title') : t('delivery_info') %></h2>
+    <span class="cod-pill"><%- icon('cash') %><%= t('trust_cod_t') %></span>
   </div>
 
   <% if (single) { %>
@@ -17,90 +17,90 @@
       <legend><%= product.variant_label %></legend>
       <div class="chips">
         <% product.variantList.forEach((v, i) => { %>
-          <label class="chip"><input type="radio" name="variant" value="<%= v %>" <%= i === 0 ? 'checked' : '' %>><span><%= v %></span></label>
+          <label class="chip"><input type="radio" name="variant" value="<%= v %>" <%= i === 0 ? 'checked' : '' %>><span><%= product.variantLabels[i] %></span></label>
         <% }) %>
       </div>
     </fieldset>
     <% } %>
     <div class="field">
-      <label for="qty">الكمية</label>
+      <label for="qty"><%= t('quantity') %></label>
       <div class="qty" data-qty>
-        <button type="button" class="qty-btn" data-qty-step="1" aria-label="زيادة"><%- icon('plus') %></button>
+        <button type="button" class="qty-btn" data-qty-step="1" aria-label="<%= t('increase') %>"><%- icon('plus') %></button>
         <input id="qty" name="qty" type="number" inputmode="numeric" min="1" max="<%= product.stock != null ? Math.min(product.stock, 20) : 20 %>" value="1">
-        <button type="button" class="qty-btn" data-qty-step="-1" aria-label="إنقاص"><%- icon('minus') %></button>
+        <button type="button" class="qty-btn" data-qty-step="-1" aria-label="<%= t('decrease') %>"><%- icon('minus') %></button>
       </div>
     </div>
   <% } %>
 
   <div class="grid-2">
     <div class="field">
-      <label for="customer_name">الاسم الكامل</label>
-      <input id="customer_name" name="customer_name" autocomplete="name" required maxlength="80" placeholder="الاسم واللقب">
+      <label for="customer_name"><%= t('full_name') %></label>
+      <input id="customer_name" name="customer_name" autocomplete="name" required maxlength="80" placeholder="<%= t('full_name_ph') %>">
       <small class="err" data-err="customer_name"></small>
     </div>
     <div class="field">
-      <label for="phone">رقم الهاتف</label>
+      <label for="phone"><%= t('phone') %></label>
       <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" placeholder="05 55 12 34 56" dir="ltr">
       <small class="err" data-err="phone"></small>
     </div>
     <div class="field">
-      <label for="wilaya">الولاية</label>
+      <label for="wilaya"><%= t('wilaya') %></label>
       <select id="wilaya" name="wilaya" required>
-        <option value="">اختر الولاية</option>
+        <option value=""><%= t('choose_wilaya') %></option>
         <% for (const w of wilayas) { %>
-          <option value="<%= w.code %>"><%= String(w.code).padStart(2, '0') %> - <%= w.name_ar %></option>
+          <option value="<%= w.code %>"><%= String(w.code).padStart(2, '0') %> - <%= w.name %></option>
         <% } %>
       </select>
       <small class="err" data-err="wilaya"></small>
     </div>
     <div class="field">
-      <label for="commune">البلدية</label>
-      <input id="commune" name="commune" required maxlength="80" placeholder="اسم البلدية">
+      <label for="commune"><%= t('commune') %></label>
+      <input id="commune" name="commune" required maxlength="80" placeholder="<%= t('commune_ph') %>">
       <small class="err" data-err="commune"></small>
     </div>
   </div>
 
   <fieldset class="field">
-    <legend>طريقة التوصيل</legend>
+    <legend><%= t('delivery_method') %></legend>
     <div class="delivery-options">
       <label class="delivery-opt"><input type="radio" name="delivery_type" value="home" checked>
-        <span><%- icon('home') %><b>توصيل للمنزل</b><em data-ship-price="home">—</em></span></label>
+        <span><%- icon('home') %><b><%= t('home_delivery') %></b><em data-ship-price="home">—</em></span></label>
       <label class="delivery-opt"><input type="radio" name="delivery_type" value="desk">
-        <span><%- icon('box') %><b>مكتب التوصيل</b><em data-ship-price="desk">—</em></span></label>
+        <span><%- icon('box') %><b><%= t('desk_delivery') %></b><em data-ship-price="desk">—</em></span></label>
     </div>
   </fieldset>
 
   <div class="field" data-address-field>
-    <label for="address">العنوان</label>
-    <input id="address" name="address" autocomplete="street-address" maxlength="200" placeholder="الحي، الشارع، رقم المنزل">
+    <label for="address"><%= t('address') %></label>
+    <input id="address" name="address" autocomplete="street-address" maxlength="200" placeholder="<%= t('address_ph') %>">
     <small class="err" data-err="address"></small>
   </div>
 
   <details class="notes">
-    <summary>إضافة ملاحظة (اختياري)</summary>
-    <textarea name="notes" rows="2" maxlength="500" placeholder="مثال: موديل الهاتف، وقت مناسب للاتصال..."></textarea>
+    <summary><%= t('add_note') %></summary>
+    <textarea name="notes" rows="2" maxlength="500" placeholder="<%= t('note_ph') %>"></textarea>
   </details>
 
   <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
 
   <div class="summary">
-    <div><span>المنتجات</span><span data-sum="subtotal">—</span></div>
-    <div><span>التوصيل</span><span data-sum="shipping">اختر الولاية</span></div>
-    <div class="summary-total"><span>المجموع</span><span data-sum="total">—</span></div>
+    <div><span><%= t('sum_products') %></span><span data-sum="subtotal">—</span></div>
+    <div><span><%= t('sum_shipping') %></span><span data-sum="shipping"><%= t('choose_wilaya') %></span></div>
+    <div class="summary-total"><span><%= t('sum_total') %></span><span data-sum="total">—</span></div>
   </div>
 
   <div class="form-error" data-err="form" role="alert" hidden></div>
 
   <% if (single && !product.inStock) { %>
-    <button class="btn btn-dark btn-block btn-lg" type="button" disabled>نفد المخزون</button>
+    <button class="btn btn-dark btn-block btn-lg" type="button" disabled><%= t('out_of_stock') %></button>
   <% } else { %>
     <button class="btn btn-dark btn-block btn-lg" type="submit" data-submit>
-      <%- icon('check') %><span>تأكيد الطلب</span>
+      <%- icon('check') %><span><%= t('confirm_order') %></span>
     </button>
     <% if (single) { %>
-      <button class="btn btn-ghost btn-block" type="button" data-add-to-cart><%- icon('cart') %>أضف إلى السلة</button>
+      <button class="btn btn-ghost btn-block" type="button" data-add-to-cart><%- icon('cart') %><%= t('add_to_cart') %></button>
     <% } %>
   <% } %>
-  <p class="form-note">لن تدفع أي شيء الآن. سنتصل بك لتأكيد الطلب، وتدفع عند استلامه.</p>
+  <p class="form-note"><%= t('form_note') %></p>
 </form>
 <script type="application/json" id="wilayas-data"><%- json(wilayas) %></script>

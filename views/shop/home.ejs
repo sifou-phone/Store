@@ -3,17 +3,17 @@
 <section class="hero">
   <div class="container hero-grid">
     <div class="hero-copy">
-      <span class="eyebrow">هواتف • سماعات • شواحن • إكسسوارات</span>
-      <h1>كل ما يحتاجه هاتفك،<br>في مكان واحد.</h1>
-      <p><%= settings.tagline %>. اطلب الآن وادفع عند الاستلام، مع توصيل سريع إلى باب منزلك.</p>
+      <span class="eyebrow"><%= t('hero_eyebrow') %></span>
+      <h1><%= t('hero_title_1') %><br><%= t('hero_title_2') %></h1>
+      <p><%= t('hero_text', { tagline: loc(settings, 'tagline') }) %></p>
       <div class="hero-actions">
-        <a class="btn btn-dark btn-lg" href="/products">تسوّق الآن <%- icon('arrow') %></a>
-        <% if (waLink) { %><a class="btn btn-ghost btn-lg" href="<%= waLink %>" target="_blank" rel="noopener"><%- icon('whatsapp') %>اسألنا على واتساب</a><% } %>
+        <a class="btn btn-dark btn-lg" href="/products"><%= t('shop_now') %> <%- icon('arrow', 'flip') %></a>
+        <% if (waLink) { %><a class="btn btn-ghost btn-lg" href="<%= waLink %>" target="_blank" rel="noopener"><%- icon('whatsapp') %><%= t('ask_whatsapp') %></a><% } %>
       </div>
       <ul class="hero-points">
-        <li><%- icon('check') %>الدفع عند الاستلام</li>
-        <li><%- icon('check') %>58 ولاية</li>
-        <li><%- icon('check') %>افحص قبل الدفع</li>
+        <li><%- icon('check') %><%= t('trust_cod_t') %></li>
+        <li><%- icon('check') %><%= t('n_wilayas', { n: wilayaCount }) %></li>
+        <li><%- icon('check') %><%= t('trust_inspect_t') %></li>
       </ul>
     </div>
     <div class="hero-art">
@@ -25,10 +25,10 @@
 <% if (categories.length) { %>
 <section class="section">
   <div class="container">
-    <div class="section-head"><h2>تسوّق حسب القسم</h2></div>
+    <div class="section-head"><h2><%= t('shop_by_cat') %></h2></div>
     <div class="cat-grid">
       <% for (const c of categories) { %>
-        <a class="cat-tile" href="/products?c=<%= c.slug %>"><span><%= c.name %></span><%- icon('arrow') %></a>
+        <a class="cat-tile" href="/products?c=<%= c.slug %>"><span><%= c.name %></span><%- icon('arrow', 'flip') %></a>
       <% } %>
     </div>
   </div>
@@ -39,8 +39,8 @@
 <section class="section">
   <div class="container">
     <div class="section-head">
-      <h2>الأكثر طلباً</h2>
-      <a class="link" href="/products">عرض الكل <%- icon('arrow') %></a>
+      <h2><%= t('best_sellers') %></h2>
+      <a class="link" href="/products"><%= t('view_all') %> <%- icon('arrow', 'flip') %></a>
     </div>
     <div class="product-grid">
       <% for (const p of featured) { %><%- include('../partials/product-card', { p }) %><% } %>
@@ -52,11 +52,11 @@
 <section class="section">
   <div class="container">
     <div class="steps">
-      <h2>كيف تطلب؟</h2>
+      <h2><%= t('how_title') %></h2>
       <ol>
-        <li><span class="step-n">1</span><div><strong>اختر منتجك</strong><p>تصفح المنتجات واملأ استمارة الطلب في أقل من دقيقة.</p></div></li>
-        <li><span class="step-n">2</span><div><strong>نتصل بك للتأكيد</strong><p>يتصل بك فريقنا لتأكيد الطلب والعنوان.</p></div></li>
-        <li><span class="step-n">3</span><div><strong>استلم وادفع</strong><p>افحص المنتج عند الاستلام ثم ادفع نقداً.</p></div></li>
+        <li><span class="step-n">1</span><div><strong><%= t('step1_t') %></strong><p><%= t('step1_d') %></p></div></li>
+        <li><span class="step-n">2</span><div><strong><%= t('step2_t') %></strong><p><%= t('step2_d') %></p></div></li>
+        <li><span class="step-n">3</span><div><strong><%= t('step3_t') %></strong><p><%= t('step3_d') %></p></div></li>
       </ol>
     </div>
   </div>
@@ -66,8 +66,8 @@
 <section class="section">
   <div class="container">
     <div class="section-head">
-      <h2>وصل حديثاً</h2>
-      <a class="link" href="/products">عرض الكل <%- icon('arrow') %></a>
+      <h2><%= t('new_arrivals') %></h2>
+      <a class="link" href="/products"><%= t('view_all') %> <%- icon('arrow', 'flip') %></a>
     </div>
     <div class="product-grid">
       <% for (const p of latest) { %><%- include('../partials/product-card', { p }) %><% } %>
@@ -75,7 +75,7 @@
   </div>
 </section>
 <% } else { %>
-<section class="section"><div class="container empty">لا توجد منتجات بعد.</div></section>
+<section class="section"><div class="container empty"><%= t('no_products_yet') %></div></section>
 <% } %>
 
 <%- include('../partials/footer') %>

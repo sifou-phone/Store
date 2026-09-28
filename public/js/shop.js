@@ -4,11 +4,16 @@
 
   var CART_KEY = 'sp_cart';
   var currency = document.body.dataset.currency || 'دج';
+  var lang = document.body.dataset.lang || 'ar';
+  var T = {};
+  try { T = JSON.parse(document.getElementById('i18n-data').textContent); } catch (e) { /* keep keys */ }
+  function t(key) { return T[key] || key; }
 
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
   function fmt(n) {
-    return Math.round(n).toLocaleString('en-US') + ' ' + currency;
+    // Arabic pages use comma grouping so the number stays in one piece in RTL text.
+    return Math.round(n).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-US') + ' ' + currency;
   }
   function track() {
     if (window.fbq) { try { window.fbq.apply(null, arguments); } catch (e) { /* ignore */ } }
@@ -79,12 +84,12 @@
       var free = allFree();
       $all('[data-ship-price]', form).forEach(function (el) {
         var type = el.dataset.shipPrice;
-        el.textContent = free ? 'مجاني' : w ? fmt(type === 'desk' ? w.desk_price : w.home_price) : 'اختر الولاية';
+        el.textContent = free ? t('free') : w ? fmt(type === 'desk' ? w.desk_price : w.home_price) : t('choose_wilaya');
       });
       var sub = subtotal();
       var ship = free ? 0 : w ? (deliveryType() === 'desk' ? w.desk_price : w.home_price) : null;
       $('[data-sum="subtotal"]', form).textContent = fmt(sub);
-      $('[data-sum="shipping"]', form).textContent = ship === null ? 'اختر الولاية' : ship === 0 ? 'مجاني' : fmt(ship);
+      $('[data-sum="shipping"]', form).textContent = ship === null ? t('choose_wilaya') : ship === 0 ? t('free') : fmt(ship);
       $('[data-sum="total"]', form).textContent = fmt(sub + (ship || 0));
       if (addressField) addressField.hidden = deliveryType() === 'desk';
     }
@@ -111,13 +116,13 @@
 
     function validate() {
       var errors = {};
-      if (form.customer_name.value.trim().length < 3) errors.customer_name = 'الرجاء إدخال الاسم الكامل';
+      if (form.customer_name.value.trim().length < 3) errors.customer_name = t('err_name');
       var phone = form.phone.value.replace(/[\s.\-()]/g, '').replace(/^(\+|00)213/, '0');
-      if (!/^0[5-7]\d{8}$/.test(phone) && !/^0[2-4]\d{7}$/.test(phone)) errors.phone = 'رقم الهاتف غير صحيح (مثال: 0555123456)';
-      if (!form.wilaya.value) errors.wilaya = 'اختر الولاية';
-      if (form.commune.value.trim().length < 2) errors.commune = 'الرجاء إدخال البلدية';
-      if (deliveryType() === 'home' && form.address.value.trim().length < 4) errors.address = 'الرجاء إدخال العنوان';
-      if (mode === 'cart' && !cartLines.length) errors.form = 'السلة فارغة';
+      if (!/^0[5-7]\d{8}$/.test(phone) && !/^0[2-4]\d{7}$/.test(phone)) errors.phone = t('err_phone');
+      if (!form.wilaya.value) errors.wilaya = t('err_wilaya');
+      if (form.commune.value.trim().length < 2) errors.commune = t('err_commune');
+      if (deliveryType() === 'home' && form.address.value.trim().length < 4) errors.address = t('err_address');
+      if (mode === 'cart' && !cartLines.length) errors.form = t('err_cart_empty');
       return errors;
     }
 
@@ -160,7 +165,7 @@
         var it = items()[0];
         addToCart(it.product_id, it.variant, it.qty);
         track('track', 'AddToCart', { content_ids: [String(it.product_id)], content_type: 'product', value: subtotal(), currency: 'DZD' });
-        toast('تمت الإضافة إلى السلة <a href="/cart">عرض السلة</a>');
+        toast(t('added_to_cart') + ' <a href="/cart">' + t('view_cart') + '</a>');
       });
     }
 
@@ -190,12 +195,12 @@
             window.location.href = res.body.redirect;
             return;
           }
-          showErrors(res.body.errors || { form: 'تعذر إرسال الطلب، حاول مجدداً' });
+          showErrors(res.body.errors || { form: t('err_generic') });
           submitBtn.classList.remove('loading');
           submitBtn.disabled = false;
         })
         .catch(function () {
-          showErrors({ form: 'تعذر الاتصال بالخادم، تحقق من الإنترنت وحاول مجدداً' });
+          showErrors({ form: t('err_network') });
           submitBtn.classList.remove('loading');
           submitBtn.disabled = false;
         });
@@ -251,9 +256,10 @@
         if (p.variants.length) {
           $('[data-variant-label]', node).textContent = p.variant_label + ':';
           var sel = $('[data-variant]', node);
-          p.variants.forEach(function (v) {
+          p.variants.forEach(function (v, i) {
             var o = document.createElement('option');
-            o.value = o.textContent = v;
+            o.value = v;
+            o.textContent = (p.variant_labels && p.variant_labels[i]) || v;
             if (v === line.variant) o.selected = true;
             sel.appendChild(o);
           });

@@ -248,6 +248,7 @@ function productForm(res, product, errors = {}) {
 const EMPTY_PRODUCT = {
   name: '', slug: '', category_id: null, price: '', compare_price: '', stock: '', short_desc: '',
   description: '', features: '', variant_label: 'اللون', variants: '', images: '[]', active: 1, featured: 0, free_shipping: 0,
+  name_fr: '', short_desc_fr: '', description_fr: '', features_fr: '', variant_label_fr: '', variants_fr: '',
 };
 
 router.get('/products/new', (req, res) => productForm(res, { ...EMPTY_PRODUCT }));
@@ -299,6 +300,12 @@ function saveProduct(req, res) {
     features: clean(b.features, 3000),
     variant_label: clean(b.variant_label, 30) || 'اللون',
     variants: clean(b.variants, 300).replace(/،/g, ','),
+    name_fr: clean(b.name_fr, 150),
+    short_desc_fr: clean(b.short_desc_fr, 300),
+    description_fr: clean(b.description_fr, 5000),
+    features_fr: clean(b.features_fr, 3000),
+    variant_label_fr: clean(b.variant_label_fr, 30),
+    variants_fr: clean(b.variants_fr, 300).replace(/،/g, ','),
     images: JSON.stringify(images),
     active: b.active ? 1 : 0,
     featured: b.featured ? 1 : 0,
@@ -315,9 +322,11 @@ function saveProduct(req, res) {
     return productForm(res, { ...product, images: existing?.images || '[]', id }, errors);
   }
 
-  product.slug = uniqueSlug(clean(b.slug, 80) || product.name, id);
+  // An empty link field keeps the current URL so links already shared in ads keep working.
+  product.slug = uniqueSlug(clean(b.slug, 80) || existing?.slug || product.name, id);
   const cols = ['name', 'slug', 'category_id', 'price', 'compare_price', 'stock', 'short_desc', 'description',
-    'features', 'variant_label', 'variants', 'images', 'active', 'featured', 'free_shipping'];
+    'features', 'variant_label', 'variants', 'images', 'active', 'featured', 'free_shipping',
+    'name_fr', 'short_desc_fr', 'description_fr', 'features_fr', 'variant_label_fr', 'variants_fr'];
   const values = cols.map((c) => product[c]);
   if (existing) {
     db.prepare(`UPDATE products SET ${cols.map((c) => `${c} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values, id);
@@ -359,7 +368,8 @@ router.post('/categories', (req, res) => {
   if (name) {
     let slug = slugify(clean(req.body.slug, 60) || name);
     while (db.prepare('SELECT 1 FROM categories WHERE slug = ?').get(slug)) slug += '-2';
-    db.prepare('INSERT INTO categories (name, slug, sort) VALUES (?, ?, ?)').run(name, slug, toInt(req.body.sort, 0));
+    db.prepare('INSERT INTO categories (name, name_fr, slug, sort) VALUES (?, ?, ?, ?)')
+      .run(name, clean(req.body.name_fr, 60), slug, toInt(req.body.sort, 0));
   }
   res.redirect(303, '/admin/categories?ok=تمت الإضافة');
 });
@@ -367,7 +377,8 @@ router.post('/categories', (req, res) => {
 router.post('/categories/:id', (req, res) => {
   const name = clean(req.body.name, 60);
   if (name) {
-    db.prepare('UPDATE categories SET name = ?, sort = ? WHERE id = ?').run(name, toInt(req.body.sort, 0), toInt(req.params.id, 0));
+    db.prepare('UPDATE categories SET name = ?, name_fr = ?, sort = ? WHERE id = ?')
+      .run(name, clean(req.body.name_fr, 60), toInt(req.body.sort, 0), toInt(req.params.id, 0));
   }
   res.redirect(303, '/admin/categories?ok=تم الحفظ');
 });
@@ -401,7 +412,8 @@ router.post('/shipping', (req, res) => {
 
 // ------------------------------------------------------------- settings
 const SETTING_FIELDS = ['store_name', 'tagline', 'announcement', 'phone', 'whatsapp', 'facebook', 'instagram',
-  'tiktok', 'address', 'currency', 'fb_pixel_id', 'telegram_token', 'telegram_chat_id', 'policy_text'];
+  'tiktok', 'address', 'currency', 'fb_pixel_id', 'telegram_token', 'telegram_chat_id', 'policy_text',
+  'tagline_fr', 'announcement_fr', 'policy_text_fr'];
 
 router.get('/settings', (req, res) => {
   res.render('admin/settings', { title: 'الإعدادات', error: req.query.err || null });
@@ -409,7 +421,7 @@ router.get('/settings', (req, res) => {
 
 router.post('/settings', (req, res) => {
   for (const key of SETTING_FIELDS) {
-    if (key in req.body) setSetting(key, clean(req.body[key], key === 'policy_text' ? 5000 : 300));
+    if (key in req.body) setSetting(key, clean(req.body[key], key.startsWith('policy_text') ? 5000 : 300));
   }
   res.redirect(303, '/admin/settings?ok=تم حفظ الإعدادات');
 });

@@ -2,17 +2,17 @@
 
 <section class="section section-tight">
   <div class="container">
-    <nav class="crumbs"><a href="/">الرئيسية</a><span>/</span><span><%= title %></span></nav>
+    <nav class="crumbs"><a href="/"><%= t('home') %></a><span>/</span><span><%= title %></span></nav>
     <div class="list-head">
-      <h1><%= title %> <small><%= products.length %> منتج</small></h1>
+      <h1><%= title %> <small><%= t('n_products', { n: products.length }) %></small></h1>
       <form class="sort-form" action="/products">
         <% if (currentCat) { %><input type="hidden" name="c" value="<%= currentCat.slug %>"><% } %>
         <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
-        <label for="sort">ترتيب:</label>
+        <label for="sort"><%= t('sort_by') %></label>
         <select id="sort" name="sort" data-autosubmit>
-          <option value="" <%= !sort ? 'selected' : '' %>>الأحدث</option>
-          <option value="cheap" <%= sort === 'cheap' ? 'selected' : '' %>>الأقل سعراً</option>
-          <option value="expensive" <%= sort === 'expensive' ? 'selected' : '' %>>الأعلى سعراً</option>
+          <option value="" <%= !sort ? 'selected' : '' %>><%= t('sort_new') %></option>
+          <option value="cheap" <%= sort === 'cheap' ? 'selected' : '' %>><%= t('sort_cheap') %></option>
+          <option value="expensive" <%= sort === 'expensive' ? 'selected' : '' %>><%= t('sort_expensive') %></option>
         </select>
       </form>
     </div>
@@ -22,8 +22,8 @@
       </div>
     <% } else { %>
       <div class="empty">
-        <p>لم نجد منتجات مطابقة.</p>
-        <a class="btn btn-dark" href="/products">عرض كل المنتجات</a>
+        <p><%= t('no_match') %></p>
+        <a class="btn btn-dark" href="/products"><%= t('show_all_products') %></a>
       </div>
     <% } %>
   </div>

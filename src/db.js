@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 const { WILAYAS } = require('./wilayas');
+const demo = require('./demo');
 
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, '..', 'data'));
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
@@ -92,7 +93,9 @@ CREATE TABLE IF NOT EXISTS order_history (
 const DEFAULT_SETTINGS = {
   store_name: 'Sifou Phone',
   tagline: 'هواتف وإكسسوارات أصلية بأفضل الأسعار',
-  announcement: 'الدفع عند الاستلام • التوصيل إلى 58 ولاية',
+  announcement: 'الدفع عند الاستلام • التوصيل إلى كل الولايات',
+  tagline_fr: 'Téléphones et accessoires d’origine au meilleur prix',
+  announcement_fr: 'Paiement à la livraison • Livraison dans toutes les wilayas',
   phone: '',
   whatsapp: '',
   facebook: '',
@@ -105,6 +108,8 @@ const DEFAULT_SETTINGS = {
   telegram_chat_id: '',
   policy_text:
     'يمكنك فحص المنتج عند الاستلام قبل الدفع.\nفي حال وجود عيب مصنعي، يتم الاستبدال خلال 7 أيام من تاريخ الاستلام.\nتكاليف الإرجاع بسبب تغيير الرأي على حساب الزبون.',
+  policy_text_fr:
+    'Vous pouvez vérifier le produit à la réception avant de payer.\nEn cas de défaut de fabrication, l’échange se fait dans les 7 jours suivant la réception.\nLes frais de retour pour changement d’avis sont à la charge du client.',
 };
 
 const getSettingStmt = db.prepare('SELECT value FROM settings WHERE key = ?');
@@ -146,130 +151,73 @@ function transaction(fn) {
   }
 }
 
-function seed() {
-  if (db.prepare('SELECT COUNT(*) AS n FROM wilayas').get().n === 0) {
-    const ins = db.prepare(
-      'INSERT INTO wilayas (code, name_ar, name_fr, home_price, desk_price) VALUES (?, ?, ?, ?, ?)'
-    );
-    transaction(() => WILAYAS.forEach((w) => ins.run(...w)));
+function columnNames(table) {
+  return new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name));
+}
+
+function addColumns(table, defs) {
+  const have = columnNames(table);
+  for (const [name, def] of Object.entries(defs)) {
+    if (!have.has(name)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${def}`);
+  }
+}
+
+// Schema changes for databases created by earlier versions.
+function migrate() {
+  addColumns('categories', { name_fr: "TEXT NOT NULL DEFAULT ''" });
+  addColumns('products', {
+    name_fr: "TEXT NOT NULL DEFAULT ''",
+    short_desc_fr: "TEXT NOT NULL DEFAULT ''",
+    description_fr: "TEXT NOT NULL DEFAULT ''",
+    features_fr: "TEXT NOT NULL DEFAULT ''",
+    variant_label_fr: "TEXT NOT NULL DEFAULT ''",
+    variants_fr: "TEXT NOT NULL DEFAULT ''",
+  });
+
+  // New wilayas are added; prices the owner already edited are kept.
+  const ins = db.prepare(
+    'INSERT OR IGNORE INTO wilayas (code, name_ar, name_fr, home_price, desk_price) VALUES (?, ?, ?, ?, ?)'
+  );
+  transaction(() => WILAYAS.forEach((w) => ins.run(...w)));
+
+  const announcement = getSettingStmt.get('announcement');
+  if (announcement && announcement.value.includes('58 ولاية')) {
+    setSetting('announcement', announcement.value.replace('58 ولاية', `${WILAYAS.length} ولاية`));
   }
 
+  // Give the untouched demo catalogue its French text.
+  const catFr = db.prepare("UPDATE categories SET name_fr = ? WHERE slug = ? AND name = ? AND name_fr = ''");
+  for (const c of demo.CATEGORIES) catFr.run(c.name_fr, c.slug, c.name);
+  const prodFr = db.prepare(
+    `UPDATE products SET ${demo.FR_FIELDS.map((f) => `${f} = ?`).join(', ')}
+     WHERE slug = ? AND name_fr = '' AND (name = ? OR slug = 'nova-x12')`
+  );
+  for (const p of demo.PRODUCTS) prodFr.run(...demo.FR_FIELDS.map((f) => p[f] || ''), p.slug, p.name);
+}
+
+function seed() {
   if (getSettingStmt.get('seeded')) return;
   setSetting('seeded', '1');
   if (process.env.SEED_DEMO === '0') return;
 
-  const cats = [
-    ['هواتف ذكية', 'phones'],
-    ['سماعات', 'audio'],
-    ['شواحن وكوابل', 'chargers'],
-    ['أغلفة وحماية', 'cases'],
-    ['ساعات ذكية', 'watches'],
-  ];
-  const insCat = db.prepare('INSERT INTO categories (name, slug, sort) VALUES (?, ?, ?)');
+  const insCat = db.prepare('INSERT INTO categories (name, name_fr, slug, sort) VALUES (?, ?, ?, ?)');
   const catId = {};
-  cats.forEach(([name, slug], i) => {
-    catId[slug] = insCat.run(name, slug, i).lastInsertRowid;
+  demo.CATEGORIES.forEach((c, i) => {
+    catId[c.slug] = insCat.run(c.name, c.name_fr, c.slug, i).lastInsertRowid;
   });
 
-  const demo = [
-    {
-      name: 'هاتف ذكي Nova X12 بذاكرة 128 جيغا',
-      slug: 'nova-x12',
-      cat: 'phones',
-      price: 32900,
-      compare: 36500,
-      stock: 12,
-      short: 'شاشة 6.6 بوصة، بطارية 5000 ملي أمبير وكاميرا 50 ميغابكسل.',
-      desc: 'هاتف أنيق بأداء سريع للاستعمال اليومي، الألعاب الخفيفة والتصوير.\nيأتي في علبته الأصلية مع الشاحن وضمان 12 شهراً.',
-      features: 'ذاكرة 128 جيغا + رام 6 جيغا\nشاشة 6.6 بوصة 90 هرتز\nبطارية 5000 ملي أمبير مع شحن سريع\nكاميرا خلفية 50 ميغابكسل\nضمان 12 شهراً',
-      variants: 'أسود, أزرق, فضي',
-      img: 'phone',
-      featured: 1,
-    },
-    {
-      name: 'سماعات لاسلكية Buds Pro',
-      slug: 'buds-pro',
-      cat: 'audio',
-      price: 3900,
-      compare: 5500,
-      stock: 40,
-      short: 'عزل للضوضاء، صوت نقي وبطارية تدوم حتى 24 ساعة مع العلبة.',
-      desc: 'سماعات بلوتوث 5.3 مريحة للأذن، مثالية للرياضة والمكالمات.\nاقتران تلقائي مع الهاتف بمجرد فتح العلبة.',
-      features: 'بلوتوث 5.3 باتصال ثابت\nعزل نشط للضوضاء\n24 ساعة تشغيل مع العلبة\nمقاومة للعرق والرذاذ\nميكروفون مدمج للمكالمات',
-      variants: 'أبيض, أسود',
-      img: 'buds',
-      featured: 1,
-    },
-    {
-      name: 'شاحن سريع 25 واط مع كابل Type-C',
-      slug: 'charger-25w',
-      cat: 'chargers',
-      price: 2200,
-      compare: 2900,
-      stock: 60,
-      short: 'اشحن هاتفك من 0 إلى 50% في 30 دقيقة فقط.',
-      desc: 'شاحن جداري بتقنية الشحن السريع PD متوافق مع أغلب الهواتف الحديثة.\nيحمي البطارية من الحرارة الزائدة والشحن الزائد.',
-      features: 'قدرة 25 واط PD\nكابل Type-C بطول 1 متر\nحماية من الحرارة والشحن الزائد\nمتوافق مع أغلب الهواتف',
-      variants: '',
-      img: 'charger',
-      featured: 1,
-    },
-    {
-      name: 'غلاف حماية شفاف مضاد للصدمات',
-      slug: 'clear-case',
-      cat: 'cases',
-      price: 900,
-      compare: 1300,
-      stock: 100,
-      short: 'حماية كاملة للزوايا مع الحفاظ على شكل هاتفك الأصلي.',
-      desc: 'غلاف سيليكون شفاف لا يصفرّ مع الوقت، بزوايا معززة ضد السقوط.\nاذكر موديل هاتفك في الملاحظات عند الطلب.',
-      features: 'زوايا مقواة ضد الصدمات\nشفاف ولا يصفرّ\nحواف بارزة لحماية الكاميرا والشاشة\nخفيف ونحيف',
-      variants: '',
-      img: 'case',
-      featured: 0,
-    },
-    {
-      name: 'ساعة ذكية Fit Watch 3',
-      slug: 'fit-watch-3',
-      cat: 'watches',
-      price: 5900,
-      compare: 7900,
-      stock: 25,
-      short: 'تتبع الخطوات، النبض والنوم مع إشعارات الهاتف على معصمك.',
-      desc: 'ساعة رياضية بشاشة ملونة واضحة تحت الشمس، وبطارية تدوم أسبوعاً كاملاً.\nمتوافقة مع أندرويد وآيفون.',
-      features: 'شاشة 1.8 بوصة ملونة\nقياس نبض القلب والأكسجين\nإشعارات المكالمات والرسائل\nبطارية حتى 7 أيام\nمقاومة للماء IP67',
-      variants: 'أسود, وردي, أخضر',
-      img: 'watch',
-      featured: 1,
-    },
-    {
-      name: 'باور بنك 20000 ملي أمبير',
-      slug: 'powerbank-20000',
-      cat: 'chargers',
-      price: 4200,
-      compare: null,
-      stock: 30,
-      short: 'اشحن هاتفك 4 مرات كاملة أينما كنت.',
-      desc: 'بطارية متنقلة بسعة كبيرة ومنفذين للشحن المتزامن، مع مؤشر رقمي للنسبة المتبقية.',
-      features: 'سعة 20000 ملي أمبير\nمنفذ USB + منفذ Type-C\nشحن سريع 22.5 واط\nشاشة رقمية للنسبة',
-      variants: '',
-      img: 'powerbank',
-      featured: 0,
-    },
-  ];
-  const insProd = db.prepare(`INSERT INTO products
-    (name, slug, category_id, price, compare_price, stock, short_desc, description, features, variants, images, featured)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+  const cols = ['name', 'slug', 'category_id', 'price', 'compare_price', 'stock', 'short_desc', 'description',
+    'features', 'variants', 'images', 'featured', ...demo.FR_FIELDS];
+  const insProd = db.prepare(`INSERT INTO products (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`);
   transaction(() => {
-    for (const p of demo) {
-      insProd.run(
-        p.name, p.slug, catId[p.cat], p.price, p.compare, p.stock, p.short, p.desc,
-        p.features, p.variants, JSON.stringify([`/img/demo/${p.img}.svg`]), p.featured
-      );
+    for (const p of demo.PRODUCTS) {
+      const row = { ...p, category_id: catId[p.cat], images: JSON.stringify([`/img/demo/${p.img}.svg`]) };
+      insProd.run(...cols.map((c) => row[c] ?? (demo.FR_FIELDS.includes(c) || c === 'variants' ? '' : null)));
     }
   });
 }
 
+migrate();
 seed();
 
 module.exports = { db, getSetting, setSetting, getSettings, transaction, UPLOAD_DIR, DATA_DIR };
