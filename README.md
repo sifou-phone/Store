@@ -74,7 +74,11 @@ docker run -d --name sifou -p 3000:3000 -v sifou-data:/data \
 ```
 ثم ضع أمامه Nginx أو Caddy مع شهادة HTTPS لنطاقك.
 
-**Render / Railway / Fly.io:** اربط هذا المستودع، أمر التشغيل `npm start`،
+**Railway (الأسهل):** New Project ← Deploy from GitHub repo ← اختر هذا المستودع.
+ثم أضف Volume واجعل مساره `/data`، وأضف المتغيرين `DATA_DIR=/data` و `ADMIN_PASSWORD`،
+ثم من Settings ← Networking اضغط Generate Domain (أو اربط نطاقك).
+
+**Render / Fly.io:** اربط هذا المستودع، أمر التشغيل `npm start`،
 أضف قرصاً دائماً (Disk / Volume) واجعل `DATA_DIR` يشير إليه، وحدد `ADMIN_PASSWORD`.
 
 **النسخ الاحتياطي:** يكفي نسخ المجلد `DATA_DIR` (الملف `store.db` ومجلد `uploads`).
