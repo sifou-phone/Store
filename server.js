@@ -87,7 +87,8 @@ app.use((err, req, res, next) => {
 
 if (require.main === module) {
   const port = Number(process.env.PORT) || 3000;
-  app.listen(port, () => console.log(`Sifou Phone store running on http://localhost:${port}`));
+  // HOST=127.0.0.1 keeps the app private behind a reverse proxy (see deploy/install.sh).
+  app.listen(port, process.env.HOST || undefined, () => console.log(`Sifou Phone store running on http://localhost:${port}`));
 }
 
 module.exports = app;

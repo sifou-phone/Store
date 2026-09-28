@@ -66,6 +66,17 @@ npm start
 المتجر خادم Node.js واحد. البيانات (قاعدة البيانات والصور) تُحفظ في المجلد `DATA_DIR`،
 لذلك يجب أن يكون هذا المجلد **دائماً** (persistent disk) وأن تأخذ منه نسخة احتياطية.
 
+**الأرخص: خادم VPS بأمر واحد (يعمل على Ubuntu أو Debian — مثل RackNerd أو Hetzner أو Oracle):**
+ادخل إلى الخادم عبر SSH ثم نفّذ:
+```bash
+curl -fsSL https://raw.githubusercontent.com/sifou-phone/Store/claude/brave-clarke-0wubdq/deploy/install.sh | sudo bash
+```
+يثبّت السكربت Node.js، ويشغّل المتجر كخدمة تعيد التشغيل تلقائياً، ويضع خادم Caddy أمامه،
+ويأخذ نسخة احتياطية يومية في `/var/backups/sifou-store`، ويطبع في النهاية الرابط وكلمة مرور لوحة التحكم.
+- مع نطاقك الخاص (شهادة HTTPS تلقائية): وجّه سجل `A` للنطاق إلى عنوان IP الخادم ثم أضف النطاق في آخر الأمر:
+  `... | sudo bash -s -- sifouphone.com`
+- للتحديث لاحقاً: أعد نفس الأمر (البيانات تبقى كما هي).
+
 **Docker (أي خادم VPS):**
 ```bash
 docker build -t sifou-store .
@@ -93,6 +104,7 @@ docker run -d --name sifou -p 3000:3000 -v sifou-data:/data \
 | `SEED_DEMO` | `0` لعدم إضافة المنتجات التجريبية | `1` |
 | `SESSION_SECRET` | مفتاح توقيع الجلسات (يُولَّد تلقائياً إن لم يُحدد) | — |
 | `TRUST_PROXY` | `0` إذا لم يكن الخادم خلف proxy | `1` |
+| `HOST` | عنوان الاستماع (`127.0.0.1` خلف proxy) | كل العناوين |
 
 ## الاختبارات
 
