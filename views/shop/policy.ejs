@@ -1,0 +1,31 @@
+<%- include('../partials/head') %>
+
+<section class="section section-tight">
+  <div class="container narrow">
+    <nav class="crumbs"><a href="/">الرئيسية</a><span>/</span><span><%= title %></span></nav>
+    <h1 class="page-title"><%= title %></h1>
+
+    <div class="panel prose">
+      <h2>الدفع</h2>
+      <p>نعتمد الدفع عند الاستلام فقط: تدفع نقداً لعون التوصيل بعد استلام طلبك وفحصه.</p>
+      <h2>الإرجاع والاستبدال</h2>
+      <% for (const line of settings.policy_text.split(/\r?\n/).filter(Boolean)) { %><p><%= line %></p><% } %>
+    </div>
+
+    <div class="panel">
+      <h2>أسعار التوصيل</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>الولاية</th><th>للمنزل</th><th>لمكتب التوصيل</th></tr></thead>
+          <tbody>
+            <% for (const w of wilayas) { %>
+              <tr><td><%= String(w.code).padStart(2, '0') %> - <%= w.name_ar %></td><td><%= price(w.home_price) %></td><td><%= price(w.desk_price) %></td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

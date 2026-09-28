@@ -1,0 +1,99 @@
+<%- include('../partials/head') %>
+
+<section class="section section-tight">
+  <div class="container">
+    <nav class="crumbs">
+      <a href="/">الرئيسية</a><span>/</span>
+      <% if (category) { %><a href="/products?c=<%= category.slug %>"><%= category.name %></a><span>/</span><% } %>
+      <span><%= product.name %></span>
+    </nav>
+
+    <div class="pdp">
+      <div class="gallery" data-gallery>
+        <div class="gallery-main">
+          <img src="<%= product.image %>" alt="<%= product.name %>" width="700" height="700" data-gallery-main>
+          <% if (product.discount) { %><span class="badge badge-sale badge-lg">-<%= product.discount %>%</span><% } %>
+        </div>
+        <% if (product.imageList.length > 1) { %>
+        <div class="thumbs">
+          <% product.imageList.forEach((img, i) => { %>
+            <button type="button" class="thumb <%= i === 0 ? 'active' : '' %>" data-src="<%= img %>" aria-label="صورة <%= i + 1 %>">
+              <img src="<%= img %>" alt="" loading="lazy" width="80" height="80">
+            </button>
+          <% }) %>
+        </div>
+        <% } %>
+      </div>
+
+      <div class="pdp-info">
+        <% if (category) { %><a class="eyebrow" href="/products?c=<%= category.slug %>"><%= category.name %></a><% } %>
+        <h1><%= product.name %></h1>
+        <div class="price-row price-row-lg">
+          <span class="price"><%= price(product.price) %></span>
+          <% if (product.discount) { %>
+            <s class="price-old"><%= price(product.compare_price) %></s>
+            <span class="save">وفّر <%= price(product.compare_price - product.price) %></span>
+          <% } %>
+        </div>
+        <% if (product.short_desc) { %><p class="lead"><%= product.short_desc %></p><% } %>
+
+        <ul class="mini-trust">
+          <li><%- icon('cash') %>الدفع عند الاستلام</li>
+          <li><%- icon('truck') %><%= product.free_shipping ? 'توصيل مجاني' : 'توصيل لـ 58 ولاية' %></li>
+          <li><%- icon('eye') %>افحص قبل الدفع</li>
+        </ul>
+        <% if (product.stock != null && product.stock > 0 && product.stock <= 5) { %>
+          <p class="stock-warn">بقي <%= product.stock %> قطع فقط في المخزون</p>
+        <% } %>
+
+        <%- include('../partials/order-form', { mode: 'single', product, wilayas }) %>
+      </div>
+    </div>
+
+    <div class="pdp-details">
+      <% if (product.featureList.length) { %>
+      <div class="panel">
+        <h2>المميزات</h2>
+        <ul class="features">
+          <% for (const f of product.featureList) { %><li><%- icon('check') %><span><%= f %></span></li><% } %>
+        </ul>
+      </div>
+      <% } %>
+      <% if (product.description) { %>
+      <div class="panel">
+        <h2>الوصف</h2>
+        <div class="prose"><% for (const para of product.description.split(/\r?\n/).filter(Boolean)) { %><p><%= para %></p><% } %></div>
+      </div>
+      <% } %>
+      <div class="panel">
+        <h2>أسئلة شائعة</h2>
+        <details class="faq" open><summary>كيف أدفع؟</summary><p>الدفع نقداً عند استلام الطلب فقط، لا نطلب أي دفع مسبق.</p></details>
+        <details class="faq"><summary>كم تستغرق مدة التوصيل؟</summary><p>عادة من 24 إلى 72 ساعة حسب الولاية، ويتصل بك عون التوصيل قبل الوصول.</p></details>
+        <details class="faq"><summary>هل يمكنني فحص المنتج قبل الدفع؟</summary><p>نعم، يمكنك فحص المنتج عند الاستلام والتأكد من مطابقته لطلبك.</p></details>
+        <details class="faq"><summary>ماذا لو كان المنتج معيباً؟</summary><p>نستبدله لك دون تكاليف إضافية. <a href="/policy">اقرأ سياسة الإرجاع</a>.</p></details>
+      </div>
+    </div>
+
+    <% if (related.length) { %>
+    <div class="section-head section-head-spaced"><h2>قد يعجبك أيضاً</h2></div>
+    <div class="product-grid">
+      <% for (const p of related) { %><%- include('../partials/product-card', { p }) %><% } %>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<div class="sticky-buy" data-sticky-buy hidden>
+  <div>
+    <strong><%= price(product.price) %></strong>
+    <span><%= product.name %></span>
+  </div>
+  <a class="btn btn-dark" href="#order"><%= product.inStock ? 'اطلب الآن' : 'نفد المخزون' %></a>
+</div>
+
+<script type="application/json" id="product-data"><%- json({ id: product.id, name: product.name, price: product.price, variants: product.variantList }) %></script>
+<% if (settings.fb_pixel_id) { %>
+<script>fbq('track', 'ViewContent', { content_ids: ['<%= product.id %>'], content_type: 'product', value: <%= product.price %>, currency: 'DZD' });</script>
+<% } %>
+
+<%- include('../partials/footer') %>

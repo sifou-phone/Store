@@ -1,0 +1,40 @@
+<%- include('partials/top') %>
+<form method="post" action="/admin/shipping">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="page-head">
+    <div>
+      <h1>أسعار التوصيل</h1>
+      <p class="muted">حدد سعر التوصيل لكل ولاية. أزل علامة «متاح» لإيقاف التوصيل إلى ولاية.</p>
+    </div>
+    <button class="btn btn-dark" type="submit"><%- icon('check') %>حفظ الأسعار</button>
+  </div>
+
+  <section class="box">
+    <div class="bulk">
+      <span>تطبيق على كل الولايات:</span>
+      <input type="number" min="0" placeholder="للمنزل" data-bulk="home">
+      <input type="number" min="0" placeholder="للمكتب" data-bulk="desk">
+      <button type="button" class="btn btn-ghost btn-sm" data-bulk-apply>تطبيق</button>
+    </div>
+  </section>
+
+  <section class="box box-flush">
+    <div class="table-wrap">
+      <table class="table ship-table">
+        <thead><tr><th>الولاية</th><th>للمنزل (<%= settings.currency %>)</th><th>للمكتب (<%= settings.currency %>)</th><th>متاح</th></tr></thead>
+        <tbody>
+          <% for (const w of wilayas) { %>
+          <tr class="<%= w.active ? '' : 'row-muted' %>">
+            <td><b><%= String(w.code).padStart(2, '0') %></b> <%= w.name_ar %> <span class="cell-sub"><%= w.name_fr %></span></td>
+            <td><input type="number" min="0" name="home_<%= w.code %>" value="<%= w.home_price %>" data-col="home"></td>
+            <td><input type="number" min="0" name="desk_<%= w.code %>" value="<%= w.desk_price %>" data-col="desk"></td>
+            <td><input type="checkbox" name="active_<%= w.code %>" value="1" <%= w.active ? 'checked' : '' %>></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <div class="sticky-actions end"><button class="btn btn-dark" type="submit"><%- icon('check') %>حفظ الأسعار</button></div>
+</form>
+<%- include('partials/bottom') %>

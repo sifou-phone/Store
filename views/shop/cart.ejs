@@ -1,0 +1,42 @@
+<%- include('../partials/head') %>
+
+<section class="section section-tight">
+  <div class="container">
+    <nav class="crumbs"><a href="/">الرئيسية</a><span>/</span><span>السلة</span></nav>
+    <h1 class="page-title">سلة المشتريات</h1>
+
+    <div class="cart-empty empty" data-cart-empty hidden>
+      <%- icon('cart', 'icon-xl') %>
+      <p>سلتك فارغة حالياً.</p>
+      <a class="btn btn-dark" href="/products">تصفح المنتجات</a>
+    </div>
+
+    <div class="cart-layout" data-cart-layout hidden>
+      <div class="cart-items" data-cart-items aria-live="polite"></div>
+      <div class="cart-checkout">
+        <%- include('../partials/order-form', { mode: 'cart', wilayas }) %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<template id="cart-item-tpl">
+  <div class="cart-item">
+    <a class="cart-item-img" data-link><img alt="" width="96" height="96"></a>
+    <div class="cart-item-body">
+      <a class="cart-item-name" data-link data-name></a>
+      <label class="cart-variant" data-variant-wrap><span data-variant-label></span> <select data-variant></select></label>
+      <div class="cart-item-row">
+        <div class="qty qty-sm">
+          <button type="button" class="qty-btn" data-inc aria-label="زيادة"><%- icon('plus') %></button>
+          <input type="number" inputmode="numeric" min="1" max="20" data-qty-input>
+          <button type="button" class="qty-btn" data-dec aria-label="إنقاص"><%- icon('minus') %></button>
+        </div>
+        <span class="price" data-line-total></span>
+        <button type="button" class="icon-btn" data-remove aria-label="حذف"><%- icon('trash') %></button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<%- include('../partials/footer') %>

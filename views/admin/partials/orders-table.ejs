@@ -1,0 +1,30 @@
+<% if (!orders.length) { %>
+  <p class="empty">لا توجد طلبات.</p>
+<% } else { %>
+<div class="table-wrap">
+  <table class="table orders-table">
+    <thead>
+      <tr>
+        <th>#</th><th>الزبون</th><th>الولاية</th>
+        <% if (!locals.compact) { %><th>المنتجات</th><% } %>
+        <th>المجموع</th><th>الحالة</th><th>التاريخ</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (const o of orders) { %>
+      <tr class="<%= o.status === 'new' ? 'row-new' : '' %>" data-href="/admin/orders/<%= o.id %>">
+        <td><a href="/admin/orders/<%= o.id %>"><b>#<%= o.id %></b></a></td>
+        <td><div class="cell-main"><%= o.customer_name %></div><a class="cell-sub" href="tel:<%= o.phone %>" dir="ltr"><%= o.phone %></a></td>
+        <td><%= String(o.wilaya_code).padStart(2, '0') %> - <%= o.wilaya_name %><div class="cell-sub"><%= o.delivery_type === 'desk' ? 'مكتب' : 'منزل' %></div></td>
+        <% if (!locals.compact) { %>
+        <td class="cell-items"><% for (const it of o.items) { %><div><%= it.name %><% if (it.variant) { %> <small>(<%= it.variant %>)</small><% } %> ×<%= it.qty %></div><% } %></td>
+        <% } %>
+        <td><b><%= price(o.total) %></b></td>
+        <td><span class="status s-<%= STATUSES[o.status]?.tone || 'gray' %>"><%= STATUSES[o.status]?.label || o.status %></span></td>
+        <td class="cell-sub"><%= formatDate(o.created_at) %></td>
+      </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+<% } %>

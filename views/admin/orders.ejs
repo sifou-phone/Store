@@ -1,0 +1,41 @@
+<%- include('partials/top') %>
+<%
+  const qs = (patch) => {
+    const p = new URLSearchParams();
+    const merged = { status, q, ...patch };
+    for (const [k, v] of Object.entries(merged)) if (v) p.set(k, v);
+    const s = p.toString();
+    return s ? `?${s}` : '';
+  };
+  const all = Object.values(counts).reduce((a, b) => a + b, 0);
+%>
+<div class="page-head">
+  <h1>الطلبات <small><%= total %></small></h1>
+  <a class="btn btn-ghost" href="/admin/orders.csv<%= qs({ page: '' }) %>"><%- icon('download') %>تصدير Excel</a>
+</div>
+
+<div class="tabs">
+  <a href="/admin/orders<%= qs({ status: '', page: '' }) %>" class="<%= !status ? 'active' : '' %>">الكل <span><%= all %></span></a>
+  <% for (const [key, s] of Object.entries(STATUSES)) { %>
+    <a href="/admin/orders<%= qs({ status: key, page: '' }) %>" class="<%= status === key ? 'active' : '' %>"><%= s.label %> <span><%= counts[key] || 0 %></span></a>
+  <% } %>
+</div>
+
+<form class="toolbar" action="/admin/orders">
+  <% if (status) { %><input type="hidden" name="status" value="<%= status %>"><% } %>
+  <div class="search-box"><%- icon('search') %><input type="search" name="q" value="<%= q %>" placeholder="ابحث برقم الهاتف، الاسم أو رقم الطلب"></div>
+  <button class="btn btn-dark" type="submit">بحث</button>
+</form>
+
+<section class="box box-flush">
+  <%- include('partials/orders-table', { orders, compact: false }) %>
+</section>
+
+<% if (pages > 1) { %>
+<nav class="pager">
+  <% if (page > 1) { %><a class="btn btn-ghost btn-sm" href="/admin/orders<%= qs({ page: page - 1 }) %>">السابق</a><% } %>
+  <span>صفحة <%= page %> من <%= pages %></span>
+  <% if (page < pages) { %><a class="btn btn-ghost btn-sm" href="/admin/orders<%= qs({ page: page + 1 }) %>">التالي</a><% } %>
+</nav>
+<% } %>
+<%- include('partials/bottom') %>

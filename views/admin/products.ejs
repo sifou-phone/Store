@@ -1,0 +1,45 @@
+<%- include('partials/top') %>
+<div class="page-head">
+  <h1>المنتجات <small><%= products.length %></small></h1>
+  <a class="btn btn-dark" href="/admin/products/new"><%- icon('plus') %>إضافة منتج</a>
+</div>
+
+<% if (!products.length) { %>
+  <section class="box empty">
+    <p>لم تضف أي منتج بعد.</p>
+    <a class="btn btn-dark" href="/admin/products/new">أضف منتجك الأول</a>
+  </section>
+<% } else { %>
+<section class="box box-flush">
+  <div class="table-wrap">
+    <table class="table products-table">
+      <thead><tr><th></th><th>المنتج</th><th>السعر</th><th>المخزون</th><th>المبيعات</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>
+        <% for (const p of products) { %>
+        <tr class="<%= p.active ? '' : 'row-muted' %>">
+          <td><img class="thumb-sm" src="<%= p.image %>" alt="" width="52" height="52" loading="lazy"></td>
+          <td>
+            <a class="cell-main" href="/admin/products/<%= p.id %>/edit"><%= p.name %></a>
+            <div class="cell-sub"><%= p.category_name || 'بدون قسم' %><% if (p.featured) { %> • <%- icon('star', 'icon-inline') %> مميز<% } %></div>
+          </td>
+          <td><b><%= price(p.price) %></b><% if (p.discount) { %><div class="cell-sub"><s><%= price(p.compare_price) %></s></div><% } %></td>
+          <td><% if (p.stock == null) { %><span class="muted">غير محدود</span><% } else { %><span class="<%= p.stock <= 3 ? 'text-danger' : '' %>"><%= p.stock %></span><% } %></td>
+          <td><%= p.sold %></td>
+          <td>
+            <form method="post" action="/admin/products/<%= p.id %>/toggle">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="switch <%= p.active ? 'on' : '' %>" type="submit" title="<%= p.active ? 'إخفاء من المتجر' : 'إظهار في المتجر' %>"><span></span><%= p.active ? 'ظاهر' : 'مخفي' %></button>
+            </form>
+          </td>
+          <td class="row-actions">
+            <a class="btn btn-ghost btn-sm" href="/p/<%= p.slug %>" target="_blank" rel="noopener" title="صفحة الهبوط"><%- icon('external') %></a>
+            <a class="btn btn-ghost btn-sm" href="/admin/products/<%= p.id %>/edit">تعديل</a>
+          </td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<% } %>
+<%- include('partials/bottom') %>

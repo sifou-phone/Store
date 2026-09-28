@@ -1,0 +1,33 @@
+<%- include('partials/top') %>
+<div class="page-head"><h1>الأقسام</h1></div>
+
+<section class="box">
+  <div class="box-head"><h2>إضافة قسم</h2></div>
+  <form method="post" action="/admin/categories" class="inline-form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label class="field grow"><span>اسم القسم</span><input name="name" required maxlength="60" placeholder="مثال: حوامل الهاتف"></label>
+    <label class="field"><span>رابط <small>(اختياري)</small></span><input name="slug" maxlength="60" dir="ltr" placeholder="holders"></label>
+    <label class="field narrow-field"><span>الترتيب</span><input name="sort" type="number" value="<%= categories.length %>"></label>
+    <button class="btn btn-dark" type="submit"><%- icon('plus') %>إضافة</button>
+  </form>
+</section>
+
+<section class="box">
+  <% if (!categories.length) { %><p class="empty">لا توجد أقسام.</p><% } %>
+  <% for (const c of categories) { %>
+    <div class="cat-row">
+      <form method="post" action="/admin/categories/<%= c.id %>" class="inline-form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label class="field grow"><span>الاسم</span><input name="name" value="<%= c.name %>" required maxlength="60"></label>
+        <label class="field narrow-field"><span>الترتيب</span><input name="sort" type="number" value="<%= c.sort %>"></label>
+        <span class="muted cat-count"><%= c.n %> منتج • <a href="/products?c=<%= c.slug %>" target="_blank" rel="noopener" dir="ltr">/<%= c.slug %></a></span>
+        <button class="btn btn-ghost btn-sm" type="submit">حفظ</button>
+      </form>
+      <form method="post" action="/admin/categories/<%= c.id %>/delete" data-confirm="حذف القسم؟ المنتجات ستبقى بدون قسم.">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button class="icon-btn danger" type="submit" aria-label="حذف"><%- icon('trash') %></button>
+      </form>
+    </div>
+  <% } %>
+</section>
+<%- include('partials/bottom') %>

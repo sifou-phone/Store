@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title><%= newCount ? `(${newCount}) ` : '' %><%= title %> — لوحة التحكم</title>
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cutive+Mono&family=Tajawal:wght@400;500;700;800&display=swap">
+  <link rel="stylesheet" href="/css/admin.css?v=1">
+</head>
+<body class="<%= locals.print ? 'print-mode' : '' %>" data-last-order="<%= lastOrderId %>" data-new-count="<%= newCount %>" data-csrf="<%= csrf %>">
+<div class="admin">
+  <aside class="sidebar">
+    <a class="side-brand" href="/admin">
+      <img src="/img/logo.svg" alt="" width="44" height="44">
+      <span><b>sifou phone</b><small>لوحة التحكم</small></span>
+    </a>
+    <nav class="side-nav">
+      <a href="/admin" class="<%= path === '/' ? 'active' : '' %>"><%- icon('grid') %>الرئيسية</a>
+      <a href="/admin/orders" class="<%= path.startsWith('/orders') ? 'active' : '' %>"><%- icon('list') %>الطلبات
+        <span class="nav-badge" data-new-badge <%= newCount ? '' : 'hidden' %>><%= newCount %></span></a>
+      <a href="/admin/products" class="<%= path.startsWith('/products') ? 'active' : '' %>"><%- icon('box') %>المنتجات</a>
+      <a href="/admin/categories" class="<%= path.startsWith('/categories') ? 'active' : '' %>"><%- icon('tag') %>الأقسام</a>
+      <a href="/admin/shipping" class="<%= path.startsWith('/shipping') ? 'active' : '' %>"><%- icon('truck') %>أسعار التوصيل</a>
+      <a href="/admin/settings" class="<%= path.startsWith('/settings') ? 'active' : '' %>"><%- icon('settings') %>الإعدادات</a>
+    </nav>
+    <div class="side-foot">
+      <a href="/" target="_blank" rel="noopener"><%- icon('external') %>عرض المتجر</a>
+      <form method="post" action="/admin/logout">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button type="submit"><%- icon('logout') %>تسجيل الخروج</button>
+      </form>
+    </div>
+  </aside>
+  <main class="content">
+    <% if (defaultPassword) { %>
+      <div class="alert alert-warn">أنت تستخدم كلمة المرور الافتراضية. <a href="/admin/settings#password">غيّرها الآن</a> لحماية متجرك.</div>
+    <% } %>
+    <% if (flash) { %><div class="alert alert-ok" data-flash><%- icon('check') %><%= flash %></div><% } %>

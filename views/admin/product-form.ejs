@@ -1,0 +1,105 @@
+<%- include('partials/top') %>
+<div class="page-head">
+  <div>
+    <a class="back-link" href="/admin/products"><%- icon('back') %>المنتجات</a>
+    <h1><%= title %></h1>
+  </div>
+  <% if (product.id) { %>
+    <a class="btn btn-ghost" href="/p/<%= product.slug %>" target="_blank" rel="noopener"><%- icon('external') %>عرض صفحة الهبوط</a>
+  <% } %>
+</div>
+
+<% if (Object.keys(errors).length) { %>
+  <div class="alert alert-error"><%= Object.values(errors).join(' — ') %></div>
+<% } %>
+
+<form method="post" action="/admin/products<%= product.id ? `/${product.id}` : '' %>" enctype="multipart/form-data" class="product-form">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="pf-grid">
+    <div>
+      <section class="box">
+        <div class="box-head"><h2>المعلومات الأساسية</h2></div>
+        <label class="field <%= errors.name ? 'invalid' : '' %>"><span>اسم المنتج *</span>
+          <input name="name" value="<%= product.name %>" required maxlength="150" placeholder="مثال: سماعات لاسلكية Buds Pro"></label>
+        <label class="field"><span>وصف قصير <small>(يظهر تحت السعر)</small></span>
+          <input name="short_desc" value="<%= product.short_desc %>" maxlength="300"></label>
+        <label class="field"><span>الوصف الكامل</span>
+          <textarea name="description" rows="5" maxlength="5000"><%= product.description %></textarea></label>
+        <label class="field"><span>المميزات <small>(ميزة في كل سطر)</small></span>
+          <textarea name="features" rows="5" maxlength="3000" placeholder="بطارية 5000 ملي أمبير&#10;ضمان 12 شهراً"><%= product.features %></textarea></label>
+      </section>
+
+      <section class="box">
+        <div class="box-head"><h2>الصور</h2></div>
+        <% if (product.imageList.length) { %>
+        <div class="img-grid">
+          <% product.imageList.forEach((img, i) => { %>
+            <div class="img-item">
+              <img src="<%= img %>" alt="" width="120" height="120">
+              <label class="img-opt"><input type="radio" name="main_image" value="<%= img %>" <%= i === 0 ? 'checked' : '' %>> رئيسية</label>
+              <label class="img-opt danger"><input type="checkbox" name="remove_images" value="<%= img %>"> حذف</label>
+            </div>
+          <% }) %>
+        </div>
+        <% } %>
+        <label class="dropzone" data-dropzone>
+          <%- icon('image', 'icon-xl') %>
+          <span>اضغط لاختيار الصور أو اسحبها هنا</span>
+          <small>JPG, PNG, WEBP — حتى 5 ميغابايت للصورة، 10 صور كحد أقصى</small>
+          <input type="file" name="images" accept="image/jpeg,image/png,image/webp,image/gif" multiple data-file-input>
+        </label>
+        <div class="img-grid" data-previews></div>
+      </section>
+
+      <section class="box">
+        <div class="box-head"><h2>الخيارات <small class="muted">(اختياري)</small></h2></div>
+        <div class="form-grid">
+          <label class="field"><span>اسم الخيار</span>
+            <input name="variant_label" value="<%= product.variant_label %>" maxlength="30" placeholder="اللون / المقاس / الموديل"></label>
+          <label class="field"><span>القيم <small>(مفصولة بفاصلة)</small></span>
+            <input name="variants" value="<%= product.variants %>" maxlength="300" placeholder="أسود, أبيض, أزرق"></label>
+        </div>
+      </section>
+    </div>
+
+    <div>
+      <section class="box">
+        <div class="box-head"><h2>السعر والمخزون</h2></div>
+        <label class="field <%= errors.price ? 'invalid' : '' %>"><span>سعر البيع (<%= settings.currency %>) *</span>
+          <input name="price" type="number" min="0" step="1" value="<%= product.price %>" required inputmode="numeric"></label>
+        <label class="field"><span>السعر قبل التخفيض <small>(يُشطب)</small></span>
+          <input name="compare_price" type="number" min="0" step="1" value="<%= product.compare_price ?? '' %>" inputmode="numeric"></label>
+        <label class="field"><span>الكمية في المخزون <small>(اتركه فارغاً لغير محدود)</small></span>
+          <input name="stock" type="number" min="0" step="1" value="<%= product.stock ?? '' %>" inputmode="numeric"></label>
+      </section>
+
+      <section class="box">
+        <div class="box-head"><h2>التنظيم</h2></div>
+        <label class="field"><span>القسم</span>
+          <select name="category_id">
+            <option value="">بدون قسم</option>
+            <% for (const c of categories) { %>
+              <option value="<%= c.id %>" <%= product.category_id === c.id ? 'selected' : '' %>><%= c.name %></option>
+            <% } %>
+          </select></label>
+        <label class="field"><span>رابط الصفحة <small>(يُولَّد تلقائياً)</small></span>
+          <input name="slug" value="<%= product.slug %>" maxlength="80" dir="ltr" placeholder="buds-pro"></label>
+        <label class="check"><input type="checkbox" name="active" value="1" <%= product.active ? 'checked' : '' %>><span>ظاهر في المتجر</span></label>
+        <label class="check"><input type="checkbox" name="featured" value="1" <%= product.featured ? 'checked' : '' %>><span>منتج مميز (يظهر في الرئيسية)</span></label>
+        <label class="check"><input type="checkbox" name="free_shipping" value="1" <%= product.free_shipping ? 'checked' : '' %>><span>توصيل مجاني</span></label>
+      </section>
+
+      <div>
+        <button class="btn btn-dark btn-block" type="submit"><%- icon('check') %>حفظ المنتج</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<% if (product.id) { %>
+<form method="post" action="/admin/products/<%= product.id %>/delete" data-confirm="حذف المنتج نهائياً؟ (الطلبات السابقة لن تتأثر)" class="danger-zone">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <button class="btn btn-danger-ghost" type="submit"><%- icon('trash') %>حذف المنتج</button>
+</form>
+<% } %>
+<%- include('partials/bottom') %>

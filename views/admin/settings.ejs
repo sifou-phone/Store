@@ -1,0 +1,59 @@
+<%- include('partials/top') %>
+<div class="page-head"><h1>الإعدادات</h1></div>
+<% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+<form method="post" action="/admin/settings">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <section class="box">
+    <div class="box-head"><h2>معلومات المتجر</h2></div>
+    <div class="form-grid">
+      <label class="field"><span>اسم المتجر</span><input name="store_name" value="<%= settings.store_name %>" maxlength="60"></label>
+      <label class="field"><span>العملة</span><input name="currency" value="<%= settings.currency %>" maxlength="10"></label>
+      <label class="field span-2"><span>الشعار النصي</span><input name="tagline" value="<%= settings.tagline %>" maxlength="150"></label>
+      <label class="field span-2"><span>شريط الإعلانات أعلى الموقع <small>(اتركه فارغاً لإخفائه)</small></span><input name="announcement" value="<%= settings.announcement %>" maxlength="150"></label>
+      <label class="field"><span>رقم الهاتف</span><input name="phone" value="<%= settings.phone %>" dir="ltr" placeholder="0555 12 34 56"></label>
+      <label class="field"><span>رقم واتساب</span><input name="whatsapp" value="<%= settings.whatsapp %>" dir="ltr" placeholder="0555123456"></label>
+      <label class="field span-2"><span>عنوان المحل</span><input name="address" value="<%= settings.address %>" maxlength="200"></label>
+      <label class="field"><span>رابط فيسبوك</span><input name="facebook" type="url" value="<%= settings.facebook %>" dir="ltr" placeholder="https://facebook.com/..."></label>
+      <label class="field"><span>رابط إنستغرام</span><input name="instagram" type="url" value="<%= settings.instagram %>" dir="ltr"></label>
+      <label class="field"><span>رابط تيك توك</span><input name="tiktok" type="url" value="<%= settings.tiktok %>" dir="ltr"></label>
+      <label class="field span-2"><span>سياسة الإرجاع والاستبدال <small>(كل سطر فقرة)</small></span><textarea name="policy_text" rows="4"><%= settings.policy_text %></textarea></label>
+    </div>
+  </section>
+
+  <section class="box">
+    <div class="box-head"><h2>إشعارات الطلبات على تيليغرام</h2></div>
+    <p class="muted small">استلم كل طلب جديد فوراً على هاتفك: أنشئ بوتاً عبر <b dir="ltr">@BotFather</b> وانسخ الـ Token، ثم أرسل أي رسالة للبوت واحصل على Chat ID عبر <b dir="ltr">@userinfobot</b>.</p>
+    <div class="form-grid">
+      <label class="field"><span>Bot Token</span><input name="telegram_token" value="<%= settings.telegram_token %>" dir="ltr" autocomplete="off"></label>
+      <label class="field"><span>Chat ID</span><input name="telegram_chat_id" value="<%= settings.telegram_chat_id %>" dir="ltr"></label>
+    </div>
+  </section>
+
+  <section class="box">
+    <div class="box-head"><h2>التسويق</h2></div>
+    <label class="field"><span>Facebook Pixel ID <small>(لتتبع إعلانات فيسبوك: ViewContent, AddToCart, Purchase)</small></span>
+      <input name="fb_pixel_id" value="<%= settings.fb_pixel_id %>" dir="ltr" inputmode="numeric" placeholder="123456789012345"></label>
+  </section>
+
+  <div class="sticky-actions end"><button class="btn btn-dark" type="submit"><%- icon('check') %>حفظ الإعدادات</button></div>
+</form>
+
+<% if (settings.telegram_token && settings.telegram_chat_id) { %>
+<form method="post" action="/admin/settings/telegram-test" class="box">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <button class="btn btn-ghost" type="submit"><%- icon('bell') %>إرسال رسالة تجريبية إلى تيليغرام</button>
+</form>
+<% } %>
+
+<form method="post" action="/admin/settings/password" class="box" id="password">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="box-head"><h2>تغيير كلمة المرور</h2></div>
+  <div class="form-grid">
+    <label class="field span-2"><span>كلمة المرور الحالية</span><input type="password" name="current" autocomplete="current-password" required></label>
+    <label class="field"><span>كلمة المرور الجديدة <small>(8 أحرف على الأقل)</small></span><input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
+    <label class="field"><span>تأكيد كلمة المرور</span><input type="password" name="confirm" autocomplete="new-password" minlength="8" required></label>
+  </div>
+  <button class="btn btn-dark" type="submit">تغيير كلمة المرور</button>
+</form>
+<%- include('partials/bottom') %>

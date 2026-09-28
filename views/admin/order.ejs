@@ -1,0 +1,116 @@
+<%- include('partials/top') %>
+<div class="page-head no-print">
+  <div>
+    <a class="back-link" href="/admin/orders"><%- icon('back') %>الطلبات</a>
+    <h1>الطلب #<%= order.id %> <span class="status s-<%= STATUSES[order.status]?.tone %>"><%= STATUSES[order.status]?.label %></span></h1>
+    <p class="muted"><%= formatDate(order.created_at) %></p>
+  </div>
+  <div class="head-actions">
+    <a class="btn btn-ghost" href="tel:<%= order.phone %>"><%- icon('phone') %>اتصال</a>
+    <a class="btn btn-ghost" href="https://wa.me/<%= order.phone.replace(/^0/, '213') %>" target="_blank" rel="noopener"><%- icon('whatsapp') %>واتساب</a>
+    <button class="btn btn-ghost" type="button" onclick="window.print()"><%- icon('print') %>طباعة</button>
+  </div>
+</div>
+
+<div class="print-only print-head">
+  <img src="/img/logo.svg" alt="" width="70" height="70">
+  <div><h1><%= settings.store_name %> — وصل طلب #<%= order.id %></h1><p><%= formatDate(order.created_at) %><% if (settings.phone) { %> • <%= settings.phone %><% } %></p></div>
+</div>
+
+<div class="order-grid">
+  <div>
+    <section class="box">
+      <div class="box-head"><h2>المنتجات</h2></div>
+      <table class="table">
+        <thead><tr><th>المنتج</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
+        <tbody>
+          <% for (const it of items) { %>
+          <tr>
+            <td><% if (it.product_id) { %><a href="/admin/products/<%= it.product_id %>/edit"><%= it.name %></a><% } else { %><%= it.name %><% } %>
+              <% if (it.variant) { %><div class="cell-sub"><%= it.variant %></div><% } %></td>
+            <td><%= price(it.price) %></td>
+            <td>× <%= it.qty %></td>
+            <td><b><%= price(it.price * it.qty) %></b></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+      <dl class="totals">
+        <div><dt>المجموع الفرعي</dt><dd><%= price(order.subtotal) %></dd></div>
+        <div><dt>التوصيل (<%= order.delivery_type === 'desk' ? 'مكتب' : 'منزل' %>)</dt><dd><%= price(order.shipping) %></dd></div>
+        <div class="grand"><dt>المبلغ المطلوب تحصيله</dt><dd><%= price(order.total) %></dd></div>
+      </dl>
+    </section>
+
+    <section class="box">
+      <div class="box-head"><h2>الزبون والتوصيل</h2></div>
+      <dl class="info-list">
+        <div><dt>الاسم</dt><dd><%= order.customer_name %></dd></div>
+        <div><dt>الهاتف</dt><dd><a href="tel:<%= order.phone %>" dir="ltr"><%= order.phone %></a></dd></div>
+        <div><dt>الولاية</dt><dd><%= String(order.wilaya_code).padStart(2, '0') %> - <%= order.wilaya_name %></dd></div>
+        <div><dt>البلدية</dt><dd><%= order.commune %></dd></div>
+        <div><dt>التوصيل</dt><dd><%= order.delivery_type === 'desk' ? 'إلى مكتب شركة التوصيل' : 'إلى المنزل' %></dd></div>
+        <% if (order.address) { %><div><dt>العنوان</dt><dd><%= order.address %></dd></div><% } %>
+        <% if (order.notes) { %><div><dt>ملاحظة الزبون</dt><dd class="note"><%= order.notes %></dd></div><% } %>
+      </dl>
+    </section>
+
+    <details class="box no-print">
+      <summary class="box-head"><h2>تعديل معلومات الطلب</h2></summary>
+      <form method="post" action="/admin/orders/<%= order.id %>/edit" class="form-grid">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label class="field"><span>الاسم</span><input name="customer_name" value="<%= order.customer_name %>"></label>
+        <label class="field"><span>الهاتف</span><input name="phone" value="<%= order.phone %>" dir="ltr"></label>
+        <label class="field"><span>البلدية</span><input name="commune" value="<%= order.commune %>"></label>
+        <label class="field"><span>سعر التوصيل</span><input name="shipping" type="number" min="0" value="<%= order.shipping %>"></label>
+        <label class="field span-2"><span>العنوان</span><input name="address" value="<%= order.address %>"></label>
+        <label class="field span-2"><span>ملاحظات داخلية (لا يراها الزبون)</span><textarea name="admin_note" rows="3"><%= order.admin_note %></textarea></label>
+        <div class="span-2"><button class="btn btn-dark" type="submit">حفظ التعديلات</button></div>
+      </form>
+    </details>
+  </div>
+
+  <div class="no-print">
+    <section class="box">
+      <div class="box-head"><h2>تحديث الحالة</h2></div>
+      <form method="post" action="/admin/orders/<%= order.id %>/status" class="status-form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="status-picker">
+          <% for (const [key, s] of Object.entries(STATUSES)) { %>
+            <label><input type="radio" name="status" value="<%= key %>" <%= order.status === key ? 'checked' : '' %>><span class="status s-<%= s.tone %>"><%= s.label %></span></label>
+          <% } %>
+        </div>
+        <label class="field"><span>ملاحظة (اختياري)</span><input name="note" maxlength="300" placeholder="مثال: رقم التتبع، سبب الإلغاء..."></label>
+        <button class="btn btn-dark btn-block" type="submit">حفظ الحالة</button>
+      </form>
+      <% if (order.admin_note) { %><div class="admin-note"><b>ملاحظة داخلية:</b> <%= order.admin_note %></div><% } %>
+    </section>
+
+    <section class="box">
+      <div class="box-head"><h2>السجل</h2></div>
+      <ol class="timeline">
+        <% for (const h of history) { %>
+          <li><span class="status s-<%= STATUSES[h.status]?.tone %>"><%= STATUSES[h.status]?.label || h.status %></span>
+            <small><%= formatDate(h.created_at) %></small><% if (h.note) { %><p><%= h.note %></p><% } %></li>
+        <% } %>
+      </ol>
+    </section>
+
+    <% if (previous.length) { %>
+    <section class="box">
+      <div class="box-head"><h2>طلبات سابقة لنفس الرقم</h2></div>
+      <ul class="top-list">
+        <% for (const p of previous) { %>
+          <li><a href="/admin/orders/<%= p.id %>">#<%= p.id %> — <%= price(p.total) %></a><span class="status s-<%= STATUSES[p.status]?.tone %>"><%= STATUSES[p.status]?.label %></span></li>
+        <% } %>
+      </ul>
+    </section>
+    <% } %>
+
+    <form method="post" action="/admin/orders/<%= order.id %>/delete" data-confirm="هل تريد حذف هذا الطلب نهائياً؟">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <button class="btn btn-danger-ghost btn-block" type="submit"><%- icon('trash') %>حذف الطلب</button>
+    </form>
+  </div>
+</div>
+<%- include('partials/bottom') %>

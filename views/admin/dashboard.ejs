@@ -1,0 +1,68 @@
+<%- include('partials/top') %>
+<div class="page-head">
+  <h1>مرحباً 👋</h1>
+  <a class="btn btn-dark" href="/admin/products/new"><%- icon('plus') %>منتج جديد</a>
+</div>
+
+<div class="stats">
+  <a class="stat" href="/admin/orders?status=new">
+    <span class="stat-label">طلبات جديدة</span>
+    <strong class="stat-value"><%= newCount %></strong>
+    <span class="stat-sub">بانتظار الاتصال والتأكيد</span>
+  </a>
+  <div class="stat">
+    <span class="stat-label">طلبات اليوم</span>
+    <strong class="stat-value"><%= stats.today %></strong>
+    <span class="stat-sub"><%= stats.pending %> طلب قيد المعالجة</span>
+  </div>
+  <a class="stat" href="/admin/orders?status=shipped">
+    <span class="stat-label">قيد التوصيل</span>
+    <strong class="stat-value"><%= stats.shipping %></strong>
+    <span class="stat-sub">طلبات مع شركة التوصيل</span>
+  </a>
+  <div class="stat">
+    <span class="stat-label">مبيعات 30 يوماً</span>
+    <strong class="stat-value"><%= price(stats.revenue) %></strong>
+    <span class="stat-sub"><%= stats.delivered30 %> طلب مسلّم<% if (stats.all30) { %> • نسبة التسليم <%= Math.round(stats.delivered30 / stats.all30 * 100) %>%<% } %></span>
+  </div>
+</div>
+
+<div class="dash-grid">
+  <section class="box">
+    <div class="box-head"><h2>الطلبات خلال 14 يوماً</h2></div>
+    <% const maxN = Math.max(1, ...chart.map((c) => c.n)); %>
+    <div class="bars" role="img" aria-label="عدد الطلبات اليومية خلال آخر 14 يوماً">
+      <% chart.forEach((c, i) => { %>
+        <div class="bar-col" tabindex="0" data-tip="<%= c.d.slice(8, 10) %>/<%= c.d.slice(5, 7) %>: <%= c.n %> طلب">
+          <div class="bar" style="height: <%= Math.max(c.n / maxN * 100, c.n ? 3 : 0) %>%"></div>
+          <span class="bar-x"><%= (i % 2 === 1 || i === 13) ? c.d.slice(8, 10) : '' %></span>
+        </div>
+      <% }) %>
+    </div>
+    <p class="muted small">الحد الأقصى: <%= maxN %> طلب في اليوم</p>
+  </section>
+
+  <section class="box">
+    <div class="box-head"><h2>الأكثر مبيعاً (30 يوماً)</h2></div>
+    <% if (topProducts.length) { %>
+      <ol class="top-list">
+        <% for (const t of topProducts) { %><li><span><%= t.name %></span><b><%= t.qty %></b></li><% } %>
+      </ol>
+    <% } else { %><p class="muted">لا توجد مبيعات بعد.</p><% } %>
+    <% if (stats.lowStock.length) { %>
+      <div class="box-head box-head-sub"><h2>مخزون منخفض</h2></div>
+      <ul class="top-list">
+        <% for (const p of stats.lowStock) { %><li><a href="/admin/products/<%= p.id %>/edit"><%= p.name %></a><b class="<%= p.stock === 0 ? 'text-danger' : '' %>"><%= p.stock %></b></li><% } %>
+      </ul>
+    <% } %>
+  </section>
+</div>
+
+<section class="box">
+  <div class="box-head">
+    <h2>آخر الطلبات</h2>
+    <a class="link" href="/admin/orders">كل الطلبات</a>
+  </div>
+  <%- include('partials/orders-table', { orders: recent, compact: true }) %>
+</section>
+<%- include('partials/bottom') %>
