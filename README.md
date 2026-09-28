@@ -26,18 +26,30 @@
 
 ## التشغيل محلياً
 
-يتطلب **Node.js 22.13 أو أحدث** (لا حاجة لقاعدة بيانات خارجية، يستخدم SQLite المدمج).
+1. ثبّت **Node.js 22.13 أو أحدث** من https://nodejs.org (اختر نسخة LTS). تحقق بالأمر: `node -v`
+2. افتح الطرفية **داخل مجلد المشروع** (المجلد الذي فيه `package.json`) ونفّذ:
 
 ```bash
 npm install
-ADMIN_PASSWORD=كلمة-سر-قوية npm start
+npm start
 ```
 
 - المتجر: http://localhost:3000
-- لوحة التحكم: http://localhost:3000/admin
+- لوحة التحكم: http://localhost:3000/admin — كلمة المرور الافتراضية `admin123` (غيّرها من الإعدادات).
 
-عند أول تشغيل تكون كلمة المرور هي قيمة `ADMIN_PASSWORD` (أو `admin123` إن لم تحددها — غيّرها فوراً من الإعدادات).
-يبدأ المتجر بمنتجات تجريبية يمكنك حذفها، أو شغّله بـ `SEED_DEMO=0` لمتجر فارغ.
+**لتحديد كلمة المرور أو المنفذ** (يعمل على Windows و Mac و Linux): انسخ الملف `.env.example`
+إلى ملف جديد اسمه `.env` وعدّل القيم فيه، ثم أعد تشغيل `npm start`.
+
+يبدأ المتجر بمنتجات تجريبية يمكنك حذفها، أو ضع `SEED_DEMO=0` في `.env` قبل أول تشغيل لمتجر فارغ.
+
+### حل المشاكل الشائعة
+
+| الخطأ | الحل |
+|---|---|
+| `يتطلب Node.js 22.13 أو أحدث` أو `Cannot find module 'node:sqlite'` | حدّث Node.js من nodejs.org ثم أعد `npm install` |
+| `npm error enoent Could not read package.json` | أنت لست داخل مجلد المشروع: `cd Store` ثم أعد الأمر |
+| `EADDRINUSE: address already in use` | المنفذ مستعمل: غيّر `PORT` في `.env` (مثلاً 3001) |
+| `'ADMIN_PASSWORD' is not recognized` (Windows) | لا تكتب المتغيرات قبل الأمر؛ ضعها في ملف `.env` |
 
 ## أول خطوات بعد التشغيل
 

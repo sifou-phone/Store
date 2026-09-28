@@ -1,3 +1,4 @@
+require('./src/preflight');
 const path = require('node:path');
 const express = require('express');
 const { getSettings, UPLOAD_DIR } = require('./src/db');

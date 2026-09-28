@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sp-test-'));
 process.env.DATA_DIR = tmp;
+process.env.SEED_DEMO = '1';
 process.env.ADMIN_PASSWORD = 'test-password-1';
 
 const app = require('../server');
