@@ -9,6 +9,20 @@
  */
 const RECONNECT_ERRORS = /STREAM_EXPIRED|stream (has )?expired|stream not found|CursorClosed|Hrana\(Http|connection (reset|closed)|error sending request|broken pipe/i;
 
+// The remote libsql client upper-cases SQL keywords, column names included:
+// `CREATE TABLE settings (key ...)` becomes a column named KEY, and every row
+// then comes back as { KEY: ... }. All our column names are lower case, so
+// fold them back (and drop the client's _metadata field).
+function normalizeRow(row) {
+  if (!row || typeof row !== 'object') return row;
+  const out = {};
+  for (const [k, v] of Object.entries(row)) {
+    if (k === '_metadata') continue;
+    out[/^[A-Z_]+$/.test(k) ? k.toLowerCase() : k] = v;
+  }
+  return out;
+}
+
 function isReconnectable(err) {
   return RECONNECT_ERRORS.test(String(err && err.message));
 }
@@ -63,8 +77,8 @@ class RemoteDatabase {
       return entry.stmt;
     };
     return {
-      get: (...args) => this.withRetry(() => current().get(...args)),
-      all: (...args) => this.withRetry(() => current().all(...args)),
+      get: (...args) => normalizeRow(this.withRetry(() => current().get(...args))),
+      all: (...args) => this.withRetry(() => current().all(...args)).map(normalizeRow),
       run: (...args) => this.withRetry(() => current().run(...args)),
     };
   }
@@ -91,4 +105,4 @@ class RemoteDatabase {
   }
 }
 
-module.exports = { RemoteDatabase, isReconnectable };
+module.exports = { RemoteDatabase, isReconnectable, normalizeRow };

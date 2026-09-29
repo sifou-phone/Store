@@ -49,3 +49,15 @@ test('does not retry other errors or half-done transactions', () => {
   assert.throws(() => db2.transaction(() => { fake.expire(); db2.prepare('UPDATE t SET a = 1').run(); })(), /STREAM_EXPIRED/);
   assert.equal(fake.state.opened, 1);
 });
+
+test('rows come back with lower-case column names', () => {
+  const db = new RemoteDatabase(() => ({
+    prepare: () => ({
+      get: () => ({ KEY: 'phone', value: '0555', _metadata: { duration: 1 } }),
+      all: () => [{ KEY: 'phone', value: '0555' }],
+    }),
+    exec: () => {},
+  }));
+  assert.deepEqual(db.prepare('SELECT key, value FROM settings').get(), { key: 'phone', value: '0555' });
+  assert.deepEqual(db.prepare('SELECT key, value FROM settings').all(), [{ key: 'phone', value: '0555' }]);
+});
