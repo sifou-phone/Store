@@ -11,10 +11,10 @@
   <meta property="og:site_name" content="<%= settings.store_name %>">
   <meta property="og:title" content="<%= title || settings.store_name %>">
   <meta property="og:description" content="<%= locals.description || loc(settings, 'tagline') %>">
-  <meta property="og:image" content="<%= baseUrl %><%= locals.ogImage || '/img/logo.png' %>">
+  <meta property="og:image" content="<%= baseUrl %><%= locals.ogImage || '/img/logo-share.jpg' %>">
   <meta name="theme-color" content="#f4f3ef">
-  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/img/logo.png">
+  <link rel="icon" href="/img/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cutive+Mono&family=Tajawal:wght@400;500;700;800&display=swap">
@@ -34,7 +34,7 @@
     <div class="container header-row">
       <button class="icon-btn menu-btn" type="button" aria-label="<%= t('menu') %>" data-menu-toggle><%- icon('menu') %></button>
       <a class="brand" href="/" aria-label="<%= settings.store_name %>">
-        <img src="/img/logo.svg" alt="" width="52" height="52">
+        <img src="/img/logo.webp" alt="" width="52" height="52">
         <span class="brand-name">sifou phone</span>
       </a>
       <form class="search" action="/products" role="search">

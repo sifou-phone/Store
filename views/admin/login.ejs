@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <title><%= title %> — <%= settings.store_name %></title>
-  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="icon" href="/img/favicon.png" type="image/png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cutive+Mono&family=Tajawal:wght@400;500;700;800&display=swap">
   <link rel="stylesheet" href="/css/admin.css?v=1">
 </head>
 <body class="login-body">
   <form class="login-card" method="post" action="/admin/login">
-    <img src="/img/logo.svg" alt="<%= settings.store_name %>" width="120" height="120">
+    <img src="/img/logo.webp" alt="<%= settings.store_name %>" width="120" height="120">
     <h1>لوحة تحكم المتجر</h1>
     <p class="muted">أدخل كلمة المرور للمتابعة</p>
     <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
