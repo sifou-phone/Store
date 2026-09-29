@@ -249,3 +249,20 @@ test('communes API lists the communes of a wilaya, including the 2026 ones', asy
   assert.ok(bouSaada.some((c) => c.fr === 'Bou Saada'));
   assert.equal((await (await fetch(`${base}/api/communes/99`)).json()).length, 0);
 });
+
+test('settings keep the Telegram fields and accept links without https', async () => {
+  const cookie = await adminCookie();
+  const csrf = await csrfFor(cookie);
+  const res = await fetch(`${base}/admin/settings`, {
+    method: 'POST',
+    headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ _csrf: csrf, telegram_token: ' 123:ABC \n', telegram_chat_id: '555 ', facebook: 'facebook.com/sifouphone' }),
+    redirect: 'manual',
+  });
+  assert.equal(res.status, 303);
+  const html = await (await fetch(`${base}/admin/settings`, { headers: { cookie } })).text();
+  assert.match(html, /name="telegram_token" value="123:ABC"/);
+  assert.match(html, /name="telegram_chat_id" value="555"/);
+  assert.match(html, /name="facebook" inputmode="url" value="https:\/\/facebook.com\/sifouphone"/);
+  assert.doesNotMatch(html, /type="url"/);
+});

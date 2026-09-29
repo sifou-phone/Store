@@ -436,6 +436,7 @@ router.post('/shipping', (req, res) => {
 const SETTING_FIELDS = ['store_name', 'tagline', 'announcement', 'phone', 'whatsapp', 'facebook', 'instagram',
   'tiktok', 'address', 'currency', 'fb_pixel_id', 'telegram_token', 'telegram_chat_id', 'policy_text',
   'tagline_fr', 'announcement_fr', 'policy_text_fr'];
+const SOCIAL_FIELDS = ['facebook', 'instagram', 'tiktok'];
 
 router.get('/settings', (req, res) => {
   res.render('admin/settings', { title: 'الإعدادات', error: req.query.err || null });
@@ -443,7 +444,13 @@ router.get('/settings', (req, res) => {
 
 router.post('/settings', (req, res) => {
   for (const key of SETTING_FIELDS) {
-    if (key in req.body) setSetting(key, clean(req.body[key], key.startsWith('policy_text') ? 5000 : 300));
+    if (!(key in req.body)) continue;
+    let value = clean(req.body[key], key.startsWith('policy_text') ? 5000 : 300);
+    // Pasted tokens often carry stray spaces or line breaks.
+    if (key.startsWith('telegram_') || key === 'fb_pixel_id') value = value.replace(/\s+/g, '');
+    // Accept "facebook.com/page" as well as full links.
+    if (SOCIAL_FIELDS.includes(key) && value && !/^https?:\/\//i.test(value)) value = `https://${value}`;
+    setSetting(key, value);
   }
   res.redirect(303, '/admin/settings?ok=تم حفظ الإعدادات');
 });

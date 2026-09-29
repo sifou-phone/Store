@@ -14,9 +14,9 @@
       <label class="field"><span>رقم الهاتف</span><input name="phone" value="<%= settings.phone %>" dir="ltr" placeholder="0555 12 34 56"></label>
       <label class="field"><span>رقم واتساب</span><input name="whatsapp" value="<%= settings.whatsapp %>" dir="ltr" placeholder="0555123456"></label>
       <label class="field span-2"><span>عنوان المحل</span><input name="address" value="<%= settings.address %>" maxlength="200"></label>
-      <label class="field"><span>رابط فيسبوك</span><input name="facebook" type="url" value="<%= settings.facebook %>" dir="ltr" placeholder="https://facebook.com/..."></label>
-      <label class="field"><span>رابط إنستغرام</span><input name="instagram" type="url" value="<%= settings.instagram %>" dir="ltr"></label>
-      <label class="field"><span>رابط تيك توك</span><input name="tiktok" type="url" value="<%= settings.tiktok %>" dir="ltr"></label>
+      <label class="field"><span>رابط فيسبوك</span><input name="facebook" inputmode="url" value="<%= settings.facebook %>" dir="ltr" placeholder="https://facebook.com/..."></label>
+      <label class="field"><span>رابط إنستغرام</span><input name="instagram" inputmode="url" value="<%= settings.instagram %>" dir="ltr"></label>
+      <label class="field"><span>رابط تيك توك</span><input name="tiktok" inputmode="url" value="<%= settings.tiktok %>" dir="ltr"></label>
       <label class="field span-2"><span>سياسة الإرجاع والاستبدال <small>(كل سطر فقرة)</small></span><textarea name="policy_text" rows="4"><%= settings.policy_text %></textarea></label>
     </div>
   </section>
