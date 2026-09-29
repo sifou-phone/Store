@@ -90,6 +90,11 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error(err);
   if (res.headersSent) return next(err);
+  // The failure happened before page helpers were set up (e.g. the database is
+  // unreachable): answer with plain text instead of crashing the error page.
+  if (!res.locals.settings) {
+    return res.status(500).type('text/plain; charset=utf-8').send('حدث خطأ مؤقت، الرجاء إعادة المحاولة بعد قليل.\nTemporary error, please try again shortly.');
+  }
   const t = res.locals.t || translator('ar');
   const message = err.code === 'LIMIT_FILE_SIZE' ? 'حجم الصورة كبير جداً (الحد 5 ميغابايت)' : t('error_unexpected');
   res.status(err.status || 500).render('shop/404', { title: t('error_title'), message });

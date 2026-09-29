@@ -81,6 +81,7 @@ npm start
    سجّل في uptimerobot.com ← Add New Monitor ← HTTP(s) ← الرابط `https://…onrender.com/healthz` ← كل 5 دقائق.
 
 الطلبات والمنتجات والصور كلها تُحفظ في Turso، لذلك لا يضيع شيء عند إعادة تشغيل Render.
+يعيد المتجر الاتصال بـ Turso تلقائياً إذا انقطع الاتصال بعد فترة خمول.
 الصور تُصغَّر تلقائياً في المتصفح قبل رفعها.
 
 **الأرخص: خادم VPS بأمر واحد (يعمل على Ubuntu أو Debian — مثل RackNerd أو Hetzner أو Oracle):**

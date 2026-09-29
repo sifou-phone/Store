@@ -3,6 +3,7 @@ const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 const { WILAYAS } = require('./wilayas');
 const demo = require('./demo');
+const { RemoteDatabase } = require('./remote-db');
 
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, '..', 'data'));
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
@@ -12,8 +13,10 @@ fs.mkdirSync(UPLOAD_DIR, { recursive: true });
  * Two storage backends with the same synchronous API:
  * - a local SQLite file (node:sqlite) — the default, for a PC or a VPS;
  * - Turso (libSQL) when TURSO_DATABASE_URL is set — for free hosts like Render
- *   whose disk is wiped on every restart. A local replica keeps reads fast and
- *   writes go to Turso. TURSO_MODE=remote skips the replica.
+ *   whose disk is wiped on every restart. Queries go straight to Turso.
+ *   TURSO_MODE=replica opts into a local embedded replica instead; it reads
+ *   faster but its write forwarding breaks multi-statement transactions
+ *   (InvalidParserState("Init") on COMMIT), so it is not the default.
  */
 function openDatabase() {
   const url = process.env.TURSO_DATABASE_URL;
@@ -27,7 +30,7 @@ function openDatabase() {
   const opts = { authToken: (process.env.TURSO_AUTH_TOKEN || '').trim() || undefined };
   const cleanUrl = url.trim();
 
-  if (process.env.TURSO_MODE !== 'remote') {
+  if (process.env.TURSO_MODE === 'replica') {
     // Local replica: fast reads, writes go to Turso; readYourWrites makes a new
     // order readable right after it is written. Falls back to a direct
     // connection when the replica cannot sync.
@@ -35,7 +38,7 @@ function openDatabase() {
     try {
       const conn = new Libsql(replicaFile, { ...opts, syncUrl: cleanUrl, syncPeriod: 60, readYourWrites: true });
       conn.sync();
-      return { conn, driver: 'libsql' };
+      return { conn, driver: 'libsql-replica' };
     } catch (err) {
       console.warn(`[turso] replica sync failed (${err.message}); using a direct connection instead.`);
       for (const f of fs.readdirSync(DATA_DIR)) {
@@ -45,7 +48,7 @@ function openDatabase() {
   }
 
   try {
-    const conn = new Libsql(cleanUrl, opts);
+    const conn = new RemoteDatabase(() => new Libsql(cleanUrl, opts));
     conn.prepare('SELECT 1').get();
     return { conn, driver: 'libsql' };
   } catch (err) {
@@ -194,6 +197,8 @@ function isPublicKey(key) {
 }
 
 function transaction(fn) {
+  // Replica write forwarding cannot carry BEGIN/COMMIT; run the steps one by one.
+  if (DB_DRIVER === 'libsql-replica') return fn();
   if (DB_DRIVER === 'libsql') return db.transaction(fn)();
   db.exec('BEGIN IMMEDIATE');
   try {
