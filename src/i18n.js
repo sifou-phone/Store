@@ -96,6 +96,11 @@ const STRINGS = {
   choose_wilaya: ['اختر الولاية', 'Choisissez la wilaya'],
   commune: ['البلدية', 'Commune'],
   commune_ph: ['اسم البلدية', 'Nom de la commune'],
+  choose_commune: ['اختر البلدية', 'Choisissez la commune'],
+  choose_wilaya_first: ['اختر الولاية أولاً', 'Choisissez d’abord la wilaya'],
+  commune_other: ['بلدية أخرى (اكتبها)', 'Autre commune (à saisir)'],
+  commune_other_ph: ['اكتب اسم البلدية', 'Saisissez le nom de la commune'],
+  loading: ['جارٍ التحميل...', 'Chargement...'],
   delivery_method: ['طريقة التوصيل', 'Mode de livraison'],
   home_delivery: ['توصيل للمنزل', 'À domicile'],
   desk_delivery: ['مكتب التوصيل', 'Bureau de livraison'],
@@ -166,7 +171,7 @@ const STRINGS = {
 };
 
 // Strings the storefront script needs in the browser.
-const CLIENT_KEYS = ['free', 'choose_wilaya', 'added_to_cart', 'view_cart', 'err_name', 'err_phone', 'err_wilaya',
+const CLIENT_KEYS = ['free', 'choose_wilaya', 'choose_commune', 'choose_wilaya_first', 'commune_other', 'commune_other_ph', 'loading', 'added_to_cart', 'view_cart', 'err_name', 'err_phone', 'err_wilaya',
   'err_commune', 'err_address', 'err_cart_empty', 'err_generic', 'err_network'];
 
 function translator(lang) {

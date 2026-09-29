@@ -3,6 +3,7 @@ const { db } = require('../db');
 const { hydrateProduct, rateLimiter, toInt, clean } = require('../util');
 const { localize } = require('../i18n');
 const { createOrder } = require('../orders');
+const { communesFor } = require('../communes');
 const { notifyNewOrder } = require('../notify');
 
 const router = express.Router();
@@ -126,6 +127,11 @@ router.get('/api/products', (req, res) => {
       variant_label: p.variant_label,
     }));
   res.json(rows);
+});
+
+router.get('/api/communes/:code', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.json(communesFor(req.params.code));
 });
 
 router.post('/order', (req, res) => {

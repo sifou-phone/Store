@@ -239,3 +239,13 @@ test('the dashboard saves French product fields', async () => {
   assert.match(html, /Coque premium/);
   assert.match(html, /<span>Rouge<\/span>/);
 });
+
+test('communes API lists the communes of a wilaya, including the 2026 ones', async () => {
+  const alger = await (await fetch(`${base}/api/communes/16`)).json();
+  assert.equal(alger.length, 57);
+  assert.ok(alger.some((c) => c.ar === 'باب الزوار' && c.fr === 'Bab Ezzouar'));
+  const bouSaada = await (await fetch(`${base}/api/communes/68`)).json();
+  assert.equal(bouSaada.length, 23);
+  assert.ok(bouSaada.some((c) => c.fr === 'Bou Saada'));
+  assert.equal((await (await fetch(`${base}/api/communes/99`)).json()).length, 0);
+});

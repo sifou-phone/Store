@@ -143,6 +143,67 @@
       }
     });
     form.addEventListener('change', update);
+
+    // Commune dropdown, filled from /api/communes/<wilaya>. "Other" reveals the
+    // text field; if the list cannot load the customer simply types the commune.
+    var communeSelect = $('[data-commune-select]', form);
+    var communeInput = $('[data-commune-input]', form);
+    var communeCache = {};
+    var OTHER = '__other';
+    function showCommuneInput(show) {
+      communeInput.hidden = !show;
+      if (show) communeInput.placeholder = t('commune_other_ph');
+    }
+    function addOption(value, label) {
+      var o = document.createElement('option');
+      o.value = value;
+      o.textContent = label;
+      communeSelect.appendChild(o);
+    }
+    function fillCommunes(code) {
+      communeSelect.innerHTML = '';
+      communeInput.value = '';
+      showCommuneInput(false);
+      if (!code) {
+        addOption('', t('choose_wilaya_first'));
+        communeSelect.disabled = true;
+        return;
+      }
+      addOption('', t('loading'));
+      communeSelect.disabled = true;
+      var load = communeCache[code]
+        ? Promise.resolve(communeCache[code])
+        : fetch('/api/communes/' + code)
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function (list) { communeCache[code] = list; return list; });
+      load.then(function (list) {
+        if (form.wilaya.value !== String(code)) return; // the wilaya changed meanwhile
+        communeSelect.innerHTML = '';
+        addOption('', t('choose_commune'));
+        // The value stays in Arabic so the dashboard shows the same name for every order.
+        list.forEach(function (c) { addOption(c.ar, lang === 'fr' ? c.fr : c.ar); });
+        addOption(OTHER, t('commune_other'));
+        communeSelect.disabled = false;
+        if (!list.length) { communeSelect.value = OTHER; showCommuneInput(true); }
+      }).catch(function () {
+        communeSelect.hidden = true;
+        showCommuneInput(true);
+      });
+    }
+    if (communeSelect && communeInput) {
+      communeSelect.hidden = false;
+      fillCommunes(form.wilaya.value);
+      form.wilaya.addEventListener('change', function () { fillCommunes(form.wilaya.value); });
+      communeSelect.addEventListener('change', function () {
+        if (communeSelect.value === OTHER) {
+          showCommuneInput(true);
+          communeInput.focus();
+        } else {
+          communeInput.value = communeSelect.value;
+          showCommuneInput(false);
+        }
+      });
+    }
     form.addEventListener('focusin', function once() {
       track('track', 'InitiateCheckout');
       form.removeEventListener('focusin', once);

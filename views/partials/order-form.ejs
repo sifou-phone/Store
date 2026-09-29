@@ -55,7 +55,11 @@
     </div>
     <div class="field">
       <label for="commune"><%= t('commune') %></label>
-      <input id="commune" name="commune" required maxlength="80" placeholder="<%= t('commune_ph') %>">
+      <%# The dropdown is shown by shop.js; without JavaScript the text field is used. %>
+      <select id="commune_select" data-commune-select hidden disabled>
+        <option value=""><%= t('choose_wilaya_first') %></option>
+      </select>
+      <input id="commune" name="commune" required maxlength="80" placeholder="<%= t('commune_ph') %>" data-commune-input>
       <small class="err" data-err="commune"></small>
     </div>
   </div>
