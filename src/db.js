@@ -24,20 +24,37 @@ function openDatabase() {
   }
   const Libsql = require('libsql');
   if (!url) return { conn: new Libsql(process.env.DB_FILE || path.join(DATA_DIR, 'store.db')), driver: 'libsql' };
-  const opts = { authToken: process.env.TURSO_AUTH_TOKEN || undefined };
-  if (process.env.TURSO_MODE === 'remote') return { conn: new Libsql(url, opts), driver: 'libsql' };
-  // readYourWrites: a new order is readable right after it is written.
-  const conn = new Libsql(path.join(DATA_DIR, 'turso-replica.db'), { ...opts, syncUrl: url, syncPeriod: 60, readYourWrites: true });
+  const opts = { authToken: (process.env.TURSO_AUTH_TOKEN || '').trim() || undefined };
+  const cleanUrl = url.trim();
+
+  if (process.env.TURSO_MODE !== 'remote') {
+    // Local replica: fast reads, writes go to Turso; readYourWrites makes a new
+    // order readable right after it is written. Falls back to a direct
+    // connection when the replica cannot sync.
+    const replicaFile = path.join(DATA_DIR, 'turso-replica.db');
+    try {
+      const conn = new Libsql(replicaFile, { ...opts, syncUrl: cleanUrl, syncPeriod: 60, readYourWrites: true });
+      conn.sync();
+      return { conn, driver: 'libsql' };
+    } catch (err) {
+      console.warn(`[turso] replica sync failed (${err.message}); using a direct connection instead.`);
+      for (const f of fs.readdirSync(DATA_DIR)) {
+        if (f.startsWith('turso-replica.db')) fs.rmSync(path.join(DATA_DIR, f), { force: true, recursive: true });
+      }
+    }
+  }
+
   try {
-    conn.sync();
+    const conn = new Libsql(cleanUrl, opts);
+    conn.prepare('SELECT 1').get();
+    return { conn, driver: 'libsql' };
   } catch (err) {
     console.error(
-      '\n✖ تعذر الاتصال بقاعدة بيانات Turso. تحقق من TURSO_DATABASE_URL و TURSO_AUTH_TOKEN.\n' +
-        '✖ Could not connect to Turso. Check TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.\n'
+      '\n✖ تعذر الاتصال بقاعدة بيانات Turso. تحقق من TURSO_DATABASE_URL (يبدأ بـ libsql://) و TURSO_AUTH_TOKEN.\n' +
+        `✖ Could not connect to Turso (${err.message}). Check TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.\n`
     );
     throw err;
   }
-  return { conn, driver: 'libsql' };
 }
 
 const { conn: db, driver: DB_DRIVER } = openDatabase();

@@ -72,9 +72,11 @@ npm start
 
 1. **Turso** (قاعدة البيانات): سجّل في turso.tech بحساب GitHub ← Create Database (اختر منطقة أوروبية)
    ← انسخ رابط القاعدة (`libsql://...`) ثم أنشئ Token وانسخه.
-2. **Render** (تشغيل المتجر): اضغط زر Deploy to Render أعلاه ← سجّل بحساب GitHub ← الصق:
-   `TURSO_DATABASE_URL` و `TURSO_AUTH_TOKEN` و `ADMIN_PASSWORD` ← Apply.
-   بعد بضع دقائق يعمل المتجر على رابط مثل `https://sifou-phone-store.onrender.com`.
+2. **Render** (تشغيل المتجر): في render.com ← New ← **Web Service** ← اختر مستودع `sifou-phone/Store`، ثم:
+   - Build Command: `npm install` — Start Command: `npm start` — Instance Type: **Free**
+   - Environment Variables: `NODE_VERSION=22` و `TURSO_DATABASE_URL` و `TURSO_AUTH_TOKEN` و `ADMIN_PASSWORD`
+   - Create Web Service. بعد بضع دقائق يعمل المتجر على رابط مثل `https://sifou-phone-store.onrender.com`.
+   (زر Deploy to Render يفعل نفس الشيء عبر `render.yaml`؛ إن ظهر «Sync failed» استعمل الطريقة اليدوية.)
 3. **UptimeRobot** (لإبقائه مستيقظاً): الخطة المجانية في Render تنام بعد 15 دقيقة بلا زيارات.
    سجّل في uptimerobot.com ← Add New Monitor ← HTTP(s) ← الرابط `https://…onrender.com/healthz` ← كل 5 دقائق.
 
