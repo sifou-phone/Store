@@ -1,7 +1,7 @@
 require('./src/preflight');
 const path = require('node:path');
 const express = require('express');
-const { getSettings, UPLOAD_DIR } = require('./src/db');
+const { db, getSettings, UPLOAD_DIR } = require('./src/db');
 const { ensureAdminPassword } = require('./src/auth');
 const { formatPrice, formatDate, ORDER_STATUSES } = require('./src/util');
 const { icon } = require('./src/icons');
@@ -24,7 +24,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Lightweight endpoint for the host's health check and uptime monitors.
+app.get('/healthz', (req, res) => res.type('text/plain').send('ok'));
+
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
+// Product photos: stored in the database; older ones may still be files on disk.
+app.get('/uploads/:name', (req, res, next) => {
+  const row = db.prepare('SELECT mime, data FROM media WHERE name = ?').get(req.params.name);
+  if (!row) return next();
+  res.set({ 'Content-Type': row.mime, 'Cache-Control': 'public, max-age=31536000, immutable' });
+  res.send(Buffer.from(row.data));
+});
 app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '30d' }));
 app.use(express.urlencoded({ extended: false, limit: '200kb' }));
 app.use(express.json({ limit: '200kb' }));

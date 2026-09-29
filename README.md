@@ -66,6 +66,21 @@ npm start
 المتجر خادم Node.js واحد. البيانات (قاعدة البيانات والصور) تُحفظ في المجلد `DATA_DIR`،
 لذلك يجب أن يكون هذا المجلد **دائماً** (persistent disk) وأن تأخذ منه نسخة احتياطية.
 
+**مجاناً بالكامل: Render + Turso (بلا بطاقة بنكية وبلا أوامر)**
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/sifou-phone/Store)
+
+1. **Turso** (قاعدة البيانات): سجّل في turso.tech بحساب GitHub ← Create Database (اختر منطقة أوروبية)
+   ← انسخ رابط القاعدة (`libsql://...`) ثم أنشئ Token وانسخه.
+2. **Render** (تشغيل المتجر): اضغط زر Deploy to Render أعلاه ← سجّل بحساب GitHub ← الصق:
+   `TURSO_DATABASE_URL` و `TURSO_AUTH_TOKEN` و `ADMIN_PASSWORD` ← Apply.
+   بعد بضع دقائق يعمل المتجر على رابط مثل `https://sifou-phone-store.onrender.com`.
+3. **UptimeRobot** (لإبقائه مستيقظاً): الخطة المجانية في Render تنام بعد 15 دقيقة بلا زيارات.
+   سجّل في uptimerobot.com ← Add New Monitor ← HTTP(s) ← الرابط `https://…onrender.com/healthz` ← كل 5 دقائق.
+
+الطلبات والمنتجات والصور كلها تُحفظ في Turso، لذلك لا يضيع شيء عند إعادة تشغيل Render.
+الصور تُصغَّر تلقائياً في المتصفح قبل رفعها.
+
 **الأرخص: خادم VPS بأمر واحد (يعمل على Ubuntu أو Debian — مثل RackNerd أو Hetzner أو Oracle):**
 ادخل إلى الخادم عبر SSH ثم نفّذ:
 ```bash
@@ -103,6 +118,8 @@ docker run -d --name sifou -p 3000:3000 -v sifou-data:/data \
 | `DATA_DIR` | مجلد قاعدة البيانات والصور | `./data` |
 | `SEED_DEMO` | `0` لعدم إضافة المنتجات التجريبية | `1` |
 | `SESSION_SECRET` | مفتاح توقيع الجلسات (يُولَّد تلقائياً إن لم يُحدد) | — |
+| `TURSO_DATABASE_URL` | رابط قاعدة Turso (`libsql://…`) لحفظ البيانات خارج الخادم | — |
+| `TURSO_AUTH_TOKEN` | مفتاح الوصول لقاعدة Turso | — |
 | `TRUST_PROXY` | `0` إذا لم يكن الخادم خلف proxy | `1` |
 | `HOST` | عنوان الاستماع (`127.0.0.1` خلف proxy) | كل العناوين |
 

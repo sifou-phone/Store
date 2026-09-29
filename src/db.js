@@ -8,8 +8,39 @@ const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, '..',
 const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-const db = new DatabaseSync(process.env.DB_FILE || path.join(DATA_DIR, 'store.db'));
-db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
+/**
+ * Two storage backends with the same synchronous API:
+ * - a local SQLite file (node:sqlite) — the default, for a PC or a VPS;
+ * - Turso (libSQL) when TURSO_DATABASE_URL is set — for free hosts like Render
+ *   whose disk is wiped on every restart. A local replica keeps reads fast and
+ *   writes go to Turso. TURSO_MODE=remote skips the replica.
+ */
+function openDatabase() {
+  const url = process.env.TURSO_DATABASE_URL;
+  if (!url && process.env.DB_DRIVER !== 'libsql') {
+    const conn = new DatabaseSync(process.env.DB_FILE || path.join(DATA_DIR, 'store.db'));
+    conn.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
+    return { conn, driver: 'sqlite' };
+  }
+  const Libsql = require('libsql');
+  if (!url) return { conn: new Libsql(process.env.DB_FILE || path.join(DATA_DIR, 'store.db')), driver: 'libsql' };
+  const opts = { authToken: process.env.TURSO_AUTH_TOKEN || undefined };
+  if (process.env.TURSO_MODE === 'remote') return { conn: new Libsql(url, opts), driver: 'libsql' };
+  // readYourWrites: a new order is readable right after it is written.
+  const conn = new Libsql(path.join(DATA_DIR, 'turso-replica.db'), { ...opts, syncUrl: url, syncPeriod: 60, readYourWrites: true });
+  try {
+    conn.sync();
+  } catch (err) {
+    console.error(
+      '\n✖ تعذر الاتصال بقاعدة بيانات Turso. تحقق من TURSO_DATABASE_URL و TURSO_AUTH_TOKEN.\n' +
+        '✖ Could not connect to Turso. Check TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.\n'
+    );
+    throw err;
+  }
+  return { conn, driver: 'libsql' };
+}
+
+const { conn: db, driver: DB_DRIVER } = openDatabase();
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS settings (
@@ -81,6 +112,12 @@ CREATE TABLE IF NOT EXISTS order_items (
   price INTEGER NOT NULL,
   qty INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS media (
+  name TEXT PRIMARY KEY,
+  mime TEXT NOT NULL,
+  data BLOB NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 CREATE TABLE IF NOT EXISTS order_history (
   id INTEGER PRIMARY KEY,
   order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
@@ -140,6 +177,7 @@ function isPublicKey(key) {
 }
 
 function transaction(fn) {
+  if (DB_DRIVER === 'libsql') return db.transaction(fn)();
   db.exec('BEGIN IMMEDIATE');
   try {
     const result = fn();
@@ -220,4 +258,4 @@ function seed() {
 migrate();
 seed();
 
-module.exports = { db, getSetting, setSetting, getSettings, transaction, UPLOAD_DIR, DATA_DIR };
+module.exports = { db, DB_DRIVER, getSetting, setSetting, getSettings, transaction, UPLOAD_DIR, DATA_DIR };

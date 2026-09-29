@@ -61,6 +61,12 @@ async function csrfFor(cookie) {
   return html.match(/name="_csrf" value="([^"]+)"/)[1];
 }
 
+test('health check answers without touching the database', async () => {
+  const res = await fetch(`${base}/healthz`);
+  assert.equal(res.status, 200);
+  assert.equal(await res.text(), 'ok');
+});
+
 test('storefront pages render', async () => {
   for (const url of ['/', '/products', '/p/buds-pro', '/cart', '/policy']) {
     const res = await fetch(base + url);

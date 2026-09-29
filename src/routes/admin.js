@@ -15,11 +15,10 @@ const router = express.Router();
 const loginLimit = rateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
 
 const IMAGE_TYPES = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif' };
+// Photos are kept in the database (table media) so they survive hosts whose
+// disk is wiped on restart, and are included in every database backup.
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: UPLOAD_DIR,
-    filename: (req, file, cb) => cb(null, `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${IMAGE_TYPES[file.mimetype]}`),
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024, files: 10 },
   fileFilter: (req, file, cb) => cb(null, Boolean(IMAGE_TYPES[file.mimetype])),
 });
@@ -216,7 +215,12 @@ router.post('/orders/:id/delete', (req, res) => {
   if (order) {
     // Give reserved stock back before removing an order that still held it.
     if (!['cancelled', 'returned'].includes(order.status)) setOrderStatus(id, 'cancelled', 'حذف');
-    db.prepare('DELETE FROM orders WHERE id = ?').run(id);
+    // Children are removed explicitly: Turso does not enforce ON DELETE CASCADE.
+    transaction(() => {
+      db.prepare('DELETE FROM order_items WHERE order_id = ?').run(id);
+      db.prepare('DELETE FROM order_history WHERE order_id = ?').run(id);
+      db.prepare('DELETE FROM orders WHERE id = ?').run(id);
+    });
   }
   res.redirect(303, '/admin/orders?ok=تم حذف الطلب');
 });
@@ -262,8 +266,10 @@ router.get('/products/:id/edit', (req, res, next) => {
 function removeUploads(paths) {
   for (const p of paths) {
     if (!p.startsWith('/uploads/')) continue;
-    const file = path.join(UPLOAD_DIR, path.basename(p));
-    fs.promises.unlink(file).catch(() => {});
+    const name = path.basename(p);
+    db.prepare('DELETE FROM media WHERE name = ?').run(name);
+    // Photos uploaded by older versions live on disk.
+    fs.promises.unlink(path.join(UPLOAD_DIR, name)).catch(() => {});
   }
 }
 
@@ -282,7 +288,12 @@ function saveProduct(req, res) {
   if (id && !existing) return res.status(404).send('غير موجود');
 
   const b = req.body;
-  const uploaded = (req.files || []).map((f) => `/uploads/${f.filename}`);
+  const incoming = (req.files || []).map((f) => ({
+    name: `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${IMAGE_TYPES[f.mimetype]}`,
+    mime: f.mimetype,
+    data: f.buffer,
+  }));
+  const uploaded = incoming.map((f) => `/uploads/${f.name}`);
   const kept = parseImages(existing?.images).filter((img) => ![].concat(b.remove_images || []).includes(img));
   let images = [...kept, ...uploaded];
   const main = clean(b.main_image, 300);
@@ -318,7 +329,7 @@ function saveProduct(req, res) {
   if (product.compare_price != null && product.compare_price <= (product.price || 0)) product.compare_price = null;
   if (product.stock != null && product.stock < 0) product.stock = 0;
   if (Object.keys(errors).length) {
-    removeUploads(uploaded);
+    // New photos were only held in memory; nothing to clean up.
     return productForm(res, { ...product, images: existing?.images || '[]', id }, errors);
   }
 
@@ -328,12 +339,16 @@ function saveProduct(req, res) {
     'features', 'variant_label', 'variants', 'images', 'active', 'featured', 'free_shipping',
     'name_fr', 'short_desc_fr', 'description_fr', 'features_fr', 'variant_label_fr', 'variants_fr'];
   const values = cols.map((c) => product[c]);
-  if (existing) {
-    db.prepare(`UPDATE products SET ${cols.map((c) => `${c} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values, id);
-    removeUploads(parseImages(existing.images).filter((img) => !images.includes(img)));
-  } else {
-    db.prepare(`INSERT INTO products (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).run(...values);
-  }
+  const insMedia = db.prepare('INSERT INTO media (name, mime, data) VALUES (?, ?, ?)');
+  transaction(() => {
+    for (const f of incoming) insMedia.run(f.name, f.mime, f.data);
+    if (existing) {
+      db.prepare(`UPDATE products SET ${cols.map((c) => `${c} = ?`).join(', ')}, updated_at = datetime('now') WHERE id = ?`).run(...values, id);
+    } else {
+      db.prepare(`INSERT INTO products (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).run(...values);
+    }
+  });
+  if (existing) removeUploads(parseImages(existing.images).filter((img) => !images.includes(img)));
   res.redirect(303, '/admin/products?ok=تم حفظ المنتج');
 }
 
@@ -349,7 +364,10 @@ router.post('/products/:id/toggle', (req, res) => {
 router.post('/products/:id/delete', (req, res) => {
   const product = db.prepare('SELECT * FROM products WHERE id = ?').get(toInt(req.params.id, 0));
   if (product) {
-    db.prepare('DELETE FROM products WHERE id = ?').run(product.id);
+    transaction(() => {
+      db.prepare('UPDATE order_items SET product_id = NULL WHERE product_id = ?').run(product.id);
+      db.prepare('DELETE FROM products WHERE id = ?').run(product.id);
+    });
     removeUploads(parseImages(product.images));
   }
   res.redirect(303, '/admin/products?ok=تم حذف المنتج');
@@ -384,7 +402,11 @@ router.post('/categories/:id', (req, res) => {
 });
 
 router.post('/categories/:id/delete', (req, res) => {
-  db.prepare('DELETE FROM categories WHERE id = ?').run(toInt(req.params.id, 0));
+  const id = toInt(req.params.id, 0);
+  transaction(() => {
+    db.prepare('UPDATE products SET category_id = NULL WHERE category_id = ?').run(id);
+    db.prepare('DELETE FROM categories WHERE id = ?').run(id);
+  });
   res.redirect(303, '/admin/categories?ok=تم الحذف');
 });
 
