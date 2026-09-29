@@ -27,6 +27,18 @@ app.use((req, res, next) => {
 // Lightweight endpoint for the host's health check and uptime monitors.
 app.get('/healthz', (req, res) => res.type('text/plain').send('ok'));
 
+// SITE_URL (e.g. https://sifouphone.store): the store's one public address.
+// Visits through any other host (the onrender.com address, www.) are sent there
+// so customers, Google and shared links all see the same domain.
+const SITE_URL = (process.env.SITE_URL || '').trim().replace(/\/+$/, '');
+const SITE_HOST = SITE_URL ? new URL(SITE_URL).host : '';
+if (SITE_HOST) {
+  app.use((req, res, next) => {
+    if (req.get('host') === SITE_HOST || !['GET', 'HEAD'].includes(req.method)) return next();
+    res.redirect(301, SITE_URL + req.originalUrl);
+  });
+}
+
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
 // Product photos: stored in the database; older ones may still be files on disk.
 app.get('/uploads/:name', (req, res, next) => {
@@ -76,7 +88,7 @@ app.use((req, res, next) => {
     ? `https://wa.me/${settings.whatsapp.replace(/\D/g, '').replace(/^0/, '213')}`
     : '';
   res.locals.path = req.path;
-  res.locals.baseUrl = `${req.protocol}://${req.get('host')}`;
+  res.locals.baseUrl = SITE_URL || `${req.protocol}://${req.get('host')}`;
   next();
 });
 

@@ -266,3 +266,22 @@ test('settings keep the Telegram fields and accept links without https', async (
   assert.match(html, /name="facebook" inputmode="url" value="https:\/\/facebook.com\/sifouphone"/);
   assert.doesNotMatch(html, /type="url"/);
 });
+
+test('SITE_URL sends other hosts to the main domain', () => {
+  const { spawnSync } = require('node:child_process');
+  const script = `
+    const app = require('./server');
+    const s = app.listen(0, async () => {
+      const b = 'http://127.0.0.1:' + s.address().port;
+      const r = await fetch(b + '/products?c=x', { redirect: 'manual' });
+      const h = await fetch(b + '/healthz');
+      console.log(r.status, r.headers.get('location'), h.status);
+      s.close(); process.exit(0);
+    });`;
+  const out = spawnSync(process.execPath, ['-e', script], {
+    cwd: path.join(__dirname, '..'),
+    env: { ...process.env, SITE_URL: 'https://sifouphone.store/', DATA_DIR: fs.mkdtempSync(path.join(os.tmpdir(), 'sp-site-')) },
+    encoding: 'utf8',
+  });
+  assert.equal(out.stdout.trim(), '301 https://sifouphone.store/products?c=x 200');
+});
