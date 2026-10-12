@@ -31,12 +31,12 @@
   </div>
 </section>
 <script>try { if (sessionStorage.getItem('sp_clear_cart') === '1') { localStorage.removeItem('sp_cart'); sessionStorage.removeItem('sp_clear_cart'); } } catch (e) {}</script>
-<% if (settings.fb_pixel_id) { %>
+<% if (settings.fb_pixel_id || settings.tiktok_pixel_id) { %>
 <script>
   (function () {
     var key = 'sp_px_<%= order.id %>';
     try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch (e) {}
-    fbq('track', 'Purchase', { value: <%= order.total %>, currency: 'DZD', content_type: 'product', content_ids: <%- json(items.map((i) => String(i.product_id))) %> });
+    spTrack('Purchase', { ids: <%- json(items.map((i) => String(i.product_id))) %>, value: <%= order.total %> });
   })();
 </script>
 <% } %>

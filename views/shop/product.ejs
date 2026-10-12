@@ -91,8 +91,8 @@
   <a class="btn btn-dark" href="#order"><%= product.inStock ? t('order_now') : t('out_of_stock') %></a>
 </div>
 
-<% if (settings.fb_pixel_id) { %>
-<script>fbq('track', 'ViewContent', { content_ids: ['<%= product.id %>'], content_type: 'product', value: <%= product.price %>, currency: 'DZD' });</script>
+<% if (settings.fb_pixel_id || settings.tiktok_pixel_id) { %>
+<script>spTrack('ViewContent', { ids: [<%= product.id %>], value: <%= product.price %> });</script>
 <% } %>
 
 <%- include('../partials/footer') %>

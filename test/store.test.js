@@ -285,3 +285,27 @@ test('SITE_URL sends other hosts to the main domain', () => {
   });
   assert.equal(out.stdout.trim(), '301 https://sifouphone.store/products?c=x 200');
 });
+
+test('TikTok and Facebook pixels share the shop events', async () => {
+  const cookie = await adminCookie();
+  const csrf = await csrfFor(cookie);
+  await fetch(`${base}/admin/settings`, {
+    method: 'POST',
+    headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ _csrf: csrf, tiktok_pixel_id: ' CABC123<x> ', fb_pixel_id: '123 456' }),
+    redirect: 'manual',
+  });
+  const html = await (await fetch(`${base}/p/buds-pro`)).text();
+  assert.match(html, /ttq\.load\("CABC123x"\)/);
+  assert.match(html, /fbq\('init', "123456"\)/);
+  assert.match(html, /spTrack\('ViewContent', \{ ids: \[\d+\], value: \d+ \}\)/);
+
+  await fetch(`${base}/admin/settings`, {
+    method: 'POST',
+    headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ _csrf: csrf, tiktok_pixel_id: '', fb_pixel_id: '' }),
+    redirect: 'manual',
+  });
+  const plain = await (await fetch(`${base}/p/buds-pro`)).text();
+  assert.doesNotMatch(plain, /spTrack|ttq|fbq/);
+});

@@ -25,6 +25,32 @@
     fbq('init', <%- json(settings.fb_pixel_id) %>); fbq('track', 'PageView');
   </script>
   <% } %>
+  <% if (settings.tiktok_pixel_id) { %>
+  <script>
+    !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=d.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=d.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+    ttq.load(<%- json(settings.tiktok_pixel_id) %>); ttq.page();}(window,document,'ttq');
+  </script>
+  <% } %>
+  <% if (settings.fb_pixel_id || settings.tiktok_pixel_id) { %>
+  <script>
+    // One call reports a shop event to every pixel that is set up.
+    // TikTok calls the purchase "CompletePayment" and lists products in "contents".
+    window.spTrack = function (ev, d) {
+      d = d || {};
+      var ids = (d.ids || []).map(String);
+      var hasValue = d.value != null;
+      try {
+        if (window.fbq) fbq('track', ev, hasValue ? { content_ids: ids, content_type: 'product', value: d.value, currency: 'DZD' } : {});
+      } catch (e) {}
+      try {
+        if (window.ttq) ttq.track(ev === 'Purchase' ? 'CompletePayment' : ev, hasValue ? {
+          contents: ids.map(function (id) { return { content_id: id, content_type: 'product' }; }),
+          value: d.value, currency: 'DZD'
+        } : {});
+      } catch (e) {}
+    };
+  </script>
+  <% } %>
 </head>
 <body data-currency="<%= lang === 'fr' && settings.currency === 'دج' ? 'DA' : settings.currency %>" data-lang="<%= lang %>">
   <% if (loc(settings, 'announcement')) { %>

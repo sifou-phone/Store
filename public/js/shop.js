@@ -15,8 +15,8 @@
     // Arabic pages use comma grouping so the number stays in one piece in RTL text.
     return Math.round(n).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-US') + ' ' + currency;
   }
-  function track() {
-    if (window.fbq) { try { window.fbq.apply(null, arguments); } catch (e) { /* ignore */ } }
+  function track(ev, data) {
+    if (window.spTrack) window.spTrack(ev, data);
   }
 
   // ------------------------------------------------------------ cart store
@@ -205,7 +205,7 @@
       });
     }
     form.addEventListener('focusin', function once() {
-      track('track', 'InitiateCheckout');
+      track('InitiateCheckout');
       form.removeEventListener('focusin', once);
     });
 
@@ -225,7 +225,7 @@
       addBtn.addEventListener('click', function () {
         var it = items()[0];
         addToCart(it.product_id, it.variant, it.qty);
-        track('track', 'AddToCart', { content_ids: [String(it.product_id)], content_type: 'product', value: subtotal(), currency: 'DZD' });
+        track('AddToCart', { ids: [it.product_id], value: subtotal() });
         toast(t('added_to_cart') + ' <a href="/cart">' + t('view_cart') + '</a>');
       });
     }
