@@ -5,7 +5,10 @@
     <h1><%= title %></h1>
   </div>
   <% if (product.id) { %>
-    <a class="btn btn-ghost" href="/p/<%= product.slug %>" target="_blank" rel="noopener"><%- icon('external') %>عرض صفحة الهبوط</a>
+    <div class="head-actions">
+      <a class="btn btn-ghost" href="/admin/products/<%= product.id %>/video">🎬 فيديو إعلان</a>
+      <a class="btn btn-ghost" href="/p/<%= product.slug %>" target="_blank" rel="noopener"><%- icon('external') %>عرض صفحة الهبوط</a>
+    </div>
   <% } %>
 </div>
 

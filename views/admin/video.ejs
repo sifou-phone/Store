@@ -1,0 +1,48 @@
+<%- include('partials/top') %>
+<div class="page-head">
+  <div>
+    <a class="back-link" href="/admin/products/<%= product.id %>/edit"><%- icon('back') %><%= product.name %></a>
+    <h1>🎬 فيديو إعلان</h1>
+    <p class="muted">يُصنع الفيديو تلقائياً من صورة المنتج واسمه وسعره ومميزاته وألوانه، داخل متصفحك.</p>
+  </div>
+</div>
+
+<div class="video-maker" data-video-maker>
+  <div class="vm-stage">
+    <canvas data-vm-canvas width="1080" height="1920"></canvas>
+    <div class="vm-progress" data-vm-progress hidden><span></span></div>
+  </div>
+
+  <section class="box vm-panel">
+    <div class="box-head"><h2>الإعدادات</h2></div>
+    <label class="field"><span>المقاس</span>
+      <select data-vm-opt="format">
+        <option value="9:16">9:16 عمودي — ريلز، تيك توك، ستوري</option>
+        <option value="4:5">4:5 — منشور فيسبوك وإنستغرام</option>
+        <option value="1:1">1:1 مربع</option>
+      </select></label>
+    <label class="field"><span>اللغة</span>
+      <select data-vm-opt="lang">
+        <option value="ar">العربية</option>
+        <option value="fr">Français</option>
+      </select></label>
+    <label class="field"><span>جملة الجذب <small>(أول ما يراه الزبون)</small></span>
+      <input data-vm-opt="hook1" maxlength="40"></label>
+    <label class="field"><span>العنوان الكبير</span>
+      <input data-vm-opt="hook2" maxlength="60"></label>
+    <label class="field"><span>زر الطلب</span>
+      <input data-vm-opt="cta" maxlength="24"></label>
+    <label class="check"><input type="checkbox" data-vm-opt="music" checked> موسيقى ومؤثرات صوتية (مجانية الحقوق)</label>
+
+    <div class="vm-actions">
+      <button class="btn btn-ghost" type="button" data-vm-play>▶ معاينة</button>
+      <button class="btn btn-dark" type="button" data-vm-record>⏺ إنشاء وتحميل الفيديو</button>
+    </div>
+    <p class="muted small" data-vm-status></p>
+    <p class="muted small">أثناء الإنشاء اترك هذه الصفحة مفتوحة وظاهرة حتى النهاية (حوالي 20 ثانية). يُفضّل متصفح Chrome على الحاسوب لتحميل الفيديو بصيغة MP4.</p>
+  </section>
+</div>
+
+<script type="application/json" id="video-data"><%- json(videoData) %></script>
+<script src="/js/ad-video.js?v=1" defer></script>
+<%- include('partials/bottom') %>

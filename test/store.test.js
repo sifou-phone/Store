@@ -309,3 +309,19 @@ test('TikTok and Facebook pixels share the shop events', async () => {
   const plain = await (await fetch(`${base}/p/buds-pro`)).text();
   assert.doesNotMatch(plain, /spTrack|ttq|fbq/);
 });
+
+test('the ad video maker page carries the product data', async () => {
+  const cookie = await adminCookie();
+  const p = product('buds-pro');
+  const res = await fetch(`${base}/admin/products/${p.id}/video`, { headers: { cookie } });
+  assert.equal(res.status, 200);
+  const html = await res.text();
+  const data = JSON.parse(html.match(/<script type="application\/json" id="video-data">([\s\S]*?)<\/script>/)[1]);
+  assert.equal(data.slug, 'buds-pro');
+  assert.equal(data.ar.price, p.price);
+  assert.ok(data.ar.features.length > 0 && data.ar.features.length <= 4);
+  assert.equal(data.wilayas, 69);
+  assert.match(html, /\/js\/ad-video\.js/);
+  assert.equal((await fetch(`${base}/admin/products/999999/video`, { headers: { cookie } })).status, 404);
+  assert.equal((await fetch(`${base}/fonts/tajawal-arabic-800.woff2`)).status, 200);
+});

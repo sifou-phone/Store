@@ -353,6 +353,42 @@ function saveProduct(req, res) {
 }
 
 const withUpload = [upload.array('images', 10), auth.verifyCsrf];
+// Ad video maker: the page renders the video in the browser (canvas + MediaRecorder),
+// so the free server does no heavy work.
+router.get('/products/:id/video', (req, res, next) => {
+  const row = db.prepare('SELECT * FROM products WHERE id = ?').get(toInt(req.params.id, 0));
+  if (!row) return next();
+  const pack = (lang) => {
+    const p = hydrateProduct(row, lang);
+    return {
+      name: p.name,
+      short: p.short_desc || '',
+      features: p.featureList.slice(0, 4),
+      colors: p.variantList,
+      colorLabels: p.variantLabels,
+      price: p.price,
+      compare: p.compare_price && p.compare_price > p.price ? p.compare_price : 0,
+      discount: p.discount,
+      freeShipping: !!p.free_shipping,
+    };
+  };
+  const settings = res.locals.settings;
+  res.render('admin/video', {
+    title: `فيديو إعلان: ${row.name}`,
+    product: hydrateProduct(row),
+    videoData: {
+      slug: row.slug,
+      image: hydrateProduct(row).image,
+      ar: pack('ar'),
+      fr: pack('fr'),
+      store: settings.store_name,
+      currency: settings.currency,
+      domain: res.locals.baseUrl.replace(/^https?:\/\//, ''),
+      wilayas: db.prepare('SELECT COUNT(*) AS n FROM wilayas WHERE active = 1').get().n,
+    },
+  });
+});
+
 router.post('/products', withUpload, saveProduct);
 router.post('/products/:id', withUpload, saveProduct);
 
