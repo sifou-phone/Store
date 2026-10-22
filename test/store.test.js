@@ -330,7 +330,8 @@ test('delivery prices follow the NOEST tariff, and desk orders need a stop desk'
   const w = (code) => db.prepare('SELECT * FROM wilayas WHERE code = ?').get(code);
   assert.deepEqual([w(16).home_price, w(16).desk_price, w(16).desk_available], [500, 300, 1]);
   assert.deepEqual([w(56).home_price, w(56).desk_available], [2200, 0]);
-  assert.deepEqual([w(59).home_price, w(59).desk_price], [w(3).home_price, w(3).desk_price]);
+  assert.deepEqual([w(59).home_price, w(59).desk_available], [w(3).home_price, 0]);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM wilayas WHERE code >= 59 AND desk_available = 1').get().n, 0);
   const p = product('charger-25w');
   const desk = await order({ ...customer, phone: '0551234567', wilaya: 51, commune: 'أولاد جلال', delivery_type: 'desk', address: '', items: [{ product_id: p.id, qty: 1 }] });
   assert.equal(desk.status, 422);
