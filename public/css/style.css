@@ -91,7 +91,7 @@ p { margin: 0 0 1em; }
 .header-row { display: flex; align-items: center; gap: 16px; height: 72px; }
 .brand { display: flex; align-items: center; gap: 10px; flex: none; }
 .brand img { width: 52px; height: 52px; }
-.brand-name { font-family: var(--mono); font-size: 26px; letter-spacing: .06em; direction: ltr; white-space: nowrap; }
+.brand-name { font-family: 'Bebas Neue', var(--font); font-size: 32px; line-height: 1; letter-spacing: .04em; direction: ltr; white-space: nowrap; }
 .search {
   flex: 1; max-width: 520px; margin-inline: auto; display: flex; align-items: center; gap: 8px;
   background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 0 16px; height: 46px;
@@ -398,7 +398,7 @@ p { margin: 0 0 1em; }
   .header-row { height: 64px; gap: 6px; }
   .menu-btn { display: inline-grid; }
   .brand img { width: 44px; height: 44px; }
-  .brand-name { font-size: 19px; }
+  .brand-name { font-size: 24px; }
   .brand { gap: 6px; min-width: 0; }
   .lang-btn { height: 36px; padding: 0 10px; }
   .lang-btn .icon { display: none; }
