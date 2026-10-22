@@ -453,13 +453,14 @@ router.get('/shipping', (req, res) => {
 });
 
 router.post('/shipping', (req, res) => {
-  const upd = db.prepare('UPDATE wilayas SET home_price = ?, desk_price = ?, active = ? WHERE code = ?');
+  const upd = db.prepare('UPDATE wilayas SET home_price = ?, desk_price = ?, desk_available = ?, active = ? WHERE code = ?');
   const b = req.body;
   transaction(() => {
     for (const w of db.prepare('SELECT * FROM wilayas').all()) {
       upd.run(
         Math.max(toInt(b[`home_${w.code}`], w.home_price), 0),
         Math.max(toInt(b[`desk_${w.code}`], w.desk_price), 0),
+        b[`deskon_${w.code}`] ? 1 : 0,
         b[`active_${w.code}`] ? 1 : 0,
         w.code
       );

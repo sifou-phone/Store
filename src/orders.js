@@ -56,6 +56,7 @@ function createOrder(input, ip = '', t = translator('ar'), lang = 'ar') {
   if (!wilaya) errors.wilaya = t('err_wilaya');
   if (commune.length < 2) errors.commune = t('err_commune');
   if (deliveryType === 'home' && address.length < 4) errors.address = t('err_address');
+  if (wilaya && deliveryType === 'desk' && !wilaya.desk_available) errors.form = t('err_no_desk');
 
   const lines = [];
   for (const item of normalizeItems(input.items)) {

@@ -4,7 +4,7 @@
   <div class="page-head">
     <div>
       <h1>أسعار التوصيل</h1>
-      <p class="muted">حدد سعر التوصيل لكل ولاية. أزل علامة «متاح» لإيقاف التوصيل إلى ولاية.</p>
+      <p class="muted">حدد سعر التوصيل لكل ولاية. أزل علامة «مكتب» إن لم يكن لشركة التوصيل مكتب (Stop Desk) في الولاية، وأزل «متاح» لإيقاف التوصيل إليها.</p>
     </div>
     <button class="btn btn-dark" type="submit"><%- icon('check') %>حفظ الأسعار</button>
   </div>
@@ -21,13 +21,14 @@
   <section class="box box-flush">
     <div class="table-wrap">
       <table class="table ship-table">
-        <thead><tr><th>الولاية</th><th>للمنزل (<%= settings.currency %>)</th><th>للمكتب (<%= settings.currency %>)</th><th>متاح</th></tr></thead>
+        <thead><tr><th>الولاية</th><th>للمنزل (<%= settings.currency %>)</th><th>للمكتب (<%= settings.currency %>)</th><th>مكتب</th><th>متاح</th></tr></thead>
         <tbody>
           <% for (const w of wilayas) { %>
           <tr class="<%= w.active ? '' : 'row-muted' %>">
             <td><b><%= String(w.code).padStart(2, '0') %></b> <%= w.name_ar %> <span class="cell-sub"><%= w.name_fr %></span></td>
             <td><input type="number" min="0" name="home_<%= w.code %>" value="<%= w.home_price %>" data-col="home"></td>
             <td><input type="number" min="0" name="desk_<%= w.code %>" value="<%= w.desk_price %>" data-col="desk"></td>
+            <td><input type="checkbox" name="deskon_<%= w.code %>" value="1" <%= w.desk_available ? 'checked' : '' %> aria-label="مكتب توصيل متوفر"></td>
             <td><input type="checkbox" name="active_<%= w.code %>" value="1" <%= w.active ? 'checked' : '' %>></td>
           </tr>
           <% } %>

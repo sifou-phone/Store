@@ -104,6 +104,8 @@ const STRINGS = {
   delivery_method: ['طريقة التوصيل', 'Mode de livraison'],
   home_delivery: ['توصيل للمنزل', 'À domicile'],
   desk_delivery: ['مكتب التوصيل', 'Bureau de livraison'],
+  desk_unavailable: ['غير متوفر هنا', 'Indisponible ici'],
+  err_no_desk: ['لا يوجد مكتب توصيل في هذه الولاية، اختر التوصيل للمنزل', 'Pas de bureau de livraison dans cette wilaya, choisissez la livraison à domicile'],
   address: ['العنوان', 'Adresse'],
   address_ph: ['الحي، الشارع، رقم المنزل', 'Quartier, rue, numéro'],
   add_note: ['إضافة ملاحظة (اختياري)', 'Ajouter une note (facultatif)'],
@@ -171,7 +173,7 @@ const STRINGS = {
 };
 
 // Strings the storefront script needs in the browser.
-const CLIENT_KEYS = ['free', 'choose_wilaya', 'choose_commune', 'choose_wilaya_first', 'commune_other', 'commune_other_ph', 'loading', 'added_to_cart', 'view_cart', 'err_name', 'err_phone', 'err_wilaya',
+const CLIENT_KEYS = ['free', 'desk_unavailable', 'choose_wilaya', 'choose_commune', 'choose_wilaya_first', 'commune_other', 'commune_other_ph', 'loading', 'added_to_cart', 'view_cart', 'err_name', 'err_phone', 'err_wilaya',
   'err_commune', 'err_address', 'err_cart_empty', 'err_generic', 'err_network'];
 
 function translator(lang) {

@@ -82,8 +82,17 @@
     function update() {
       var w = byCode[form.wilaya.value];
       var free = allFree();
+      // No stop desk in this wilaya: only home delivery can be chosen.
+      var deskRadio = $('input[name="delivery_type"][value="desk"]', form);
+      if (deskRadio) {
+        var noDesk = !!w && w.desk === false;
+        deskRadio.disabled = noDesk;
+        deskRadio.closest('.delivery-opt').classList.toggle('is-disabled', noDesk);
+        if (noDesk && deskRadio.checked) $('input[name="delivery_type"][value="home"]', form).checked = true;
+      }
       $all('[data-ship-price]', form).forEach(function (el) {
         var type = el.dataset.shipPrice;
+        if (type === 'desk' && w && w.desk === false) { el.textContent = t('desk_unavailable'); return; }
         el.textContent = free ? t('free') : w ? fmt(type === 'desk' ? w.desk_price : w.home_price) : t('choose_wilaya');
       });
       var sub = subtotal();

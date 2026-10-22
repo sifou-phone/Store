@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
-const { WILAYAS } = require('./wilayas');
+const { WILAYAS, TARIFF } = require('./wilayas');
 const demo = require('./demo');
 const { RemoteDatabase } = require('./remote-db');
 
@@ -99,7 +99,8 @@ CREATE TABLE IF NOT EXISTS wilayas (
   name_fr TEXT NOT NULL,
   home_price INTEGER NOT NULL,
   desk_price INTEGER NOT NULL,
-  active INTEGER NOT NULL DEFAULT 1
+  active INTEGER NOT NULL DEFAULT 1,
+  desk_available INTEGER NOT NULL DEFAULT 1
 );
 CREATE TABLE IF NOT EXISTS orders (
   id INTEGER PRIMARY KEY,
@@ -235,11 +236,22 @@ function migrate() {
     variants_fr: "TEXT NOT NULL DEFAULT ''",
   });
 
+  addColumns('wilayas', { desk_available: 'INTEGER NOT NULL DEFAULT 1' });
+
   // New wilayas are added; prices the owner already edited are kept.
+  // A null desk price means the courier has no stop desk there.
   const ins = db.prepare(
-    'INSERT OR IGNORE INTO wilayas (code, name_ar, name_fr, home_price, desk_price) VALUES (?, ?, ?, ?, ?)'
+    'INSERT OR IGNORE INTO wilayas (code, name_ar, name_fr, home_price, desk_price, desk_available) VALUES (?, ?, ?, ?, ?, ?)'
   );
-  transaction(() => WILAYAS.forEach((w) => ins.run(...w)));
+  transaction(() => WILAYAS.forEach(([code, ar, fr, home, desk]) => ins.run(code, ar, fr, home, desk ?? 0, desk == null ? 0 : 1)));
+
+  // A new courier tariff is applied once (the owner asked for it); later edits
+  // from the dashboard are kept until the next tariff change. Delivery on/off is untouched.
+  if (getSettingStmt.get('shipping_tariff')?.value !== TARIFF) {
+    const upd = db.prepare('UPDATE wilayas SET home_price = ?, desk_price = ?, desk_available = ? WHERE code = ?');
+    transaction(() => WILAYAS.forEach(([code, , , home, desk]) => upd.run(home, desk ?? 0, desk == null ? 0 : 1, code)));
+    setSetting('shipping_tariff', TARIFF);
+  }
 
   const announcement = getSettingStmt.get('announcement');
   if (announcement && announcement.value.includes('58 ولاية')) {

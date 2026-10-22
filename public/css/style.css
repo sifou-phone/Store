@@ -442,3 +442,6 @@ p { margin: 0 0 1em; }
 .site-footer { background: var(--night); border-top: 3px solid var(--gold); }
 .site-footer h3 { color: var(--gold); }
 @media (max-width: 640px) { .order-form { box-shadow: 4px 4px 0 var(--gold); } }
+
+.delivery-opt.is-disabled { opacity: .45; cursor: not-allowed; }
+.delivery-opt.is-disabled span { background: var(--soft); }

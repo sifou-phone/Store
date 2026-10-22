@@ -19,9 +19,15 @@ function categories(lang) {
 
 function wilayas(lang) {
   return db
-    .prepare('SELECT code, name_ar, name_fr, home_price, desk_price FROM wilayas WHERE active = 1 ORDER BY code')
+    .prepare('SELECT code, name_ar, name_fr, home_price, desk_price, desk_available FROM wilayas WHERE active = 1 ORDER BY code')
     .all()
-    .map((w) => ({ code: w.code, name: lang === 'fr' ? w.name_fr : w.name_ar, home_price: w.home_price, desk_price: w.desk_price }));
+    .map((w) => ({
+      code: w.code,
+      name: lang === 'fr' ? w.name_fr : w.name_ar,
+      home_price: w.home_price,
+      desk_price: w.desk_price,
+      desk: !!w.desk_available,
+    }));
 }
 
 router.use((req, res, next) => {

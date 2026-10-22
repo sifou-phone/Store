@@ -325,3 +325,31 @@ test('the ad video maker page carries the product data', async () => {
   assert.equal((await fetch(`${base}/admin/products/999999/video`, { headers: { cookie } })).status, 404);
   assert.equal((await fetch(`${base}/fonts/tajawal-arabic-800.woff2`)).status, 200);
 });
+
+test('delivery prices follow the NOEST tariff, and desk orders need a stop desk', async () => {
+  const w = (code) => db.prepare('SELECT * FROM wilayas WHERE code = ?').get(code);
+  assert.deepEqual([w(16).home_price, w(16).desk_price, w(16).desk_available], [500, 300, 1]);
+  assert.deepEqual([w(56).home_price, w(56).desk_available], [2200, 0]);
+  assert.deepEqual([w(59).home_price, w(59).desk_price], [w(3).home_price, w(3).desk_price]);
+  const p = product('charger-25w');
+  const desk = await order({ ...customer, phone: '0551234567', wilaya: 51, commune: 'أولاد جلال', delivery_type: 'desk', address: '', items: [{ product_id: p.id, qty: 1 }] });
+  assert.equal(desk.status, 422);
+  assert.match((await desk.json()).errors.form, /مكتب/);
+  const home = await order({ ...customer, phone: '0551234568', wilaya: 51, commune: 'أولاد جلال', items: [{ product_id: p.id, qty: 1 }] });
+  assert.equal(home.status, 200);
+  const html = await (await fetch(`${base}/p/buds-pro`)).text();
+  assert.match(html, /"code":51,[^}]*"desk":false/);
+});
+
+test('a running store gets a new tariff once and keeps later edits', () => {
+  const { spawnSync } = require('node:child_process');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sp-tariff-'));
+  const run = (code) => spawnSync(process.execPath, ['-e', `const { db, setSetting } = require('./src/db'); ${code}`], {
+    cwd: path.join(__dirname, '..'), env: { ...process.env, DATA_DIR: dir, SEED_DEMO: '0' }, encoding: 'utf8',
+  });
+  run(`db.prepare('UPDATE wilayas SET home_price = 999 WHERE code = 16').run(); setSetting('shipping_tariff', 'old');`);
+  assert.equal(run(`process.stdout.write(String(db.prepare('SELECT home_price FROM wilayas WHERE code = 16').get().home_price))`).stdout, '500');
+  run(`db.prepare('UPDATE wilayas SET home_price = 450 WHERE code = 16').run();`);
+  assert.equal(run(`process.stdout.write(String(db.prepare('SELECT home_price FROM wilayas WHERE code = 16').get().home_price))`).stdout, '450');
+  fs.rmSync(dir, { recursive: true, force: true });
+});
