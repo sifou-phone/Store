@@ -81,8 +81,12 @@ router.get('/p/:slug', (req, res, next) => {
     res.locals.lang
   );
   if (!product) return next();
+  // Ad page mode: only this product and its order form, no way into the rest of the store.
+  // "?ad=1" gives the same page for ads while the normal link stays a regular product page.
+  const adLink = req.query.ad === '1';
+  const adMode = Boolean(product.ad_mode) || adLink;
   const category = res.locals.categories.find((c) => c.id === product.category_id) || null;
-  const related = db
+  const related = adMode ? [] : db
     .prepare(
       `SELECT * FROM products WHERE active = 1 AND id != ?
        ORDER BY (category_id IS ?) DESC, featured DESC, id DESC LIMIT 4`
@@ -93,6 +97,8 @@ router.get('/p/:slug', (req, res, next) => {
     title: product.name,
     description: product.short_desc,
     ogImage: product.image,
+    noindex: adLink,
+    adMode,
     product,
     category,
     related,

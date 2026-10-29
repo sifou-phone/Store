@@ -354,3 +354,36 @@ test('a running store gets a new tariff once and keeps later edits', () => {
   assert.equal(run(`process.stdout.write(String(db.prepare('SELECT home_price FROM wilayas WHERE code = 16').get().home_price))`).stdout, '450');
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('ad page mode hides store navigation on one product only', async () => {
+  const hidden = [/class="cat-nav"/, /class="icon-btn cart-btn"/, /data-add-to-cart/, /class="crumbs"/, /href="\/products\?c=/];
+  const normal = await (await fetch(`${base}/p/buds-pro`)).text();
+  for (const re of [...hidden, /section-head-spaced/]) assert.match(normal, re);
+
+  // By link: same page, store navigation gone, ordering and contact kept.
+  const byLink = await (await fetch(`${base}/p/buds-pro?ad=1`)).text();
+  for (const re of [...hidden, /section-head-spaced/]) assert.doesNotMatch(byLink, re);
+  assert.match(byLink, /data-submit/);
+  assert.match(byLink, /class="faq"/);
+  assert.match(byLink, /class="brand"/);
+  assert.match(byLink, /name="robots" content="noindex"/);
+
+  // From the dashboard: the switch applies to that product's page only.
+  const cookie = await adminCookie();
+  const csrf = await csrfFor(cookie);
+  const p = product('buds-pro');
+  const form = new FormData();
+  for (const [k, v] of Object.entries({ _csrf: csrf, name: p.name, price: String(p.price), active: '1', ad_mode: '1' })) form.set(k, v);
+  const res = await fetch(`${base}/admin/products/${p.id}`, { method: 'POST', headers: { cookie }, body: form, redirect: 'manual' });
+  assert.equal(res.status, 303);
+  assert.equal(product('buds-pro').ad_mode, 1);
+  const edit = await (await fetch(`${base}/admin/products/${p.id}/edit`, { headers: { cookie } })).text();
+  assert.match(edit, /name="ad_mode" value="1" checked/);
+
+  const ad = await (await fetch(`${base}/p/buds-pro`)).text();
+  for (const re of [...hidden, /section-head-spaced/]) assert.doesNotMatch(ad, re);
+  assert.doesNotMatch(ad, /name="robots"/);
+  const other = await (await fetch(`${base}/p/clear-case`)).text();
+  assert.match(other, /class="cat-nav"/);
+  assert.match(await (await fetch(`${base}/`)).text(), /class="icon-btn cart-btn"/);
+});

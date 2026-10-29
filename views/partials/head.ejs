@@ -58,6 +58,12 @@
   <% } %>
   <header class="site-header">
     <div class="container header-row">
+      <% if (locals.adMode) { %>
+      <span class="brand" aria-label="<%= settings.store_name %>">
+        <img src="/img/logo.webp" alt="" width="52" height="52">
+        <span class="brand-name">sifou phone</span>
+      </span>
+      <% } else { %>
       <button class="icon-btn menu-btn" type="button" aria-label="<%= t('menu') %>" data-menu-toggle><%- icon('menu') %></button>
       <a class="brand" href="/" aria-label="<%= settings.store_name %>">
         <img src="/img/logo.webp" alt="" width="52" height="52">
@@ -67,16 +73,20 @@
         <%- icon('search') %>
         <input type="search" name="q" placeholder="<%= t('search_placeholder') %>" value="<%= locals.q || '' %>" aria-label="<%= t('search') %>">
       </form>
+      <% } %>
       <div class="header-actions">
         <a class="lang-btn" href="<%= langSwitch.url %>" hreflang="<%= langSwitch.lang %>" lang="<%= langSwitch.lang %>" title="<%= t('switch_lang') %>" aria-label="<%= t('switch_lang') %>">
           <%- icon('globe') %><span><%= t('switch_lang_short') %></span>
         </a>
+        <% if (!locals.adMode) { %>
         <a class="icon-btn cart-btn" href="/cart" aria-label="<%= t('cart') %>">
           <%- icon('cart') %>
           <span class="cart-count" data-cart-count hidden>0</span>
         </a>
+        <% } %>
       </div>
     </div>
+    <% if (!locals.adMode) { %>
     <nav class="cat-nav" data-menu>
       <div class="container">
         <form class="search mobile-search" action="/products" role="search">
@@ -92,5 +102,6 @@
         <a href="/policy"><%= t('delivery_returns') %></a>
       </div>
     </nav>
+    <% } %>
   </header>
   <main>

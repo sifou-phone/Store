@@ -2,11 +2,13 @@
 
 <section class="section section-tight">
   <div class="container">
+    <% if (!adMode) { %>
     <nav class="crumbs">
       <a href="/"><%= t('home') %></a><span>/</span>
       <% if (category) { %><a href="/products?c=<%= category.slug %>"><%= category.name %></a><span>/</span><% } %>
       <span><%= product.name %></span>
     </nav>
+    <% } %>
 
     <div class="pdp">
       <div class="gallery" data-gallery>
@@ -26,7 +28,7 @@
       </div>
 
       <div class="pdp-info">
-        <% if (category) { %><a class="eyebrow" href="/products?c=<%= category.slug %>"><%= category.name %></a><% } %>
+        <% if (category && adMode) { %><span class="eyebrow"><%= category.name %></span><% } else if (category) { %><a class="eyebrow" href="/products?c=<%= category.slug %>"><%= category.name %></a><% } %>
         <h1><%= product.name %></h1>
         <div class="price-row price-row-lg">
           <span class="price"><%= price(product.price) %></span>
@@ -46,7 +48,7 @@
           <p class="stock-warn"><%= t('low_stock', { n: product.stock }) %></p>
         <% } %>
 
-        <%- include('../partials/order-form', { mode: 'single', product, wilayas }) %>
+        <%- include('../partials/order-form', { mode: 'single', product, wilayas, adMode }) %>
       </div>
     </div>
 

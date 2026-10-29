@@ -101,7 +101,7 @@
     <button class="btn btn-dark btn-block btn-lg" type="submit" data-submit>
       <%- icon('check') %><span><%= t('confirm_order') %></span>
     </button>
-    <% if (single) { %>
+    <% if (single && !locals.adMode) { %>
       <button class="btn btn-ghost btn-block" type="button" data-add-to-cart><%- icon('cart') %><%= t('add_to_cart') %></button>
     <% } %>
   <% } %>

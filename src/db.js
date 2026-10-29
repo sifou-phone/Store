@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS products (
   active INTEGER NOT NULL DEFAULT 1,
   featured INTEGER NOT NULL DEFAULT 0,
   free_shipping INTEGER NOT NULL DEFAULT 0,
+  ad_mode INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -234,6 +235,7 @@ function migrate() {
     features_fr: "TEXT NOT NULL DEFAULT ''",
     variant_label_fr: "TEXT NOT NULL DEFAULT ''",
     variants_fr: "TEXT NOT NULL DEFAULT ''",
+    ad_mode: 'INTEGER NOT NULL DEFAULT 0',
   });
 
   addColumns('wilayas', { desk_available: 'INTEGER NOT NULL DEFAULT 1' });

@@ -13,6 +13,7 @@
         <img src="/img/logo.webp" alt="<%= settings.store_name %>" width="96" height="96">
         <p><%= loc(settings, 'tagline') %></p>
       </div>
+      <% if (!locals.adMode) { %>
       <div>
         <h3><%= t('categories') %></h3>
         <ul>
@@ -28,6 +29,7 @@
           <li><a href="<%= langSwitch.url %>" lang="<%= langSwitch.lang %>"><%= t('switch_lang') %></a></li>
         </ul>
       </div>
+      <% } %>
       <% if (settings.phone || waLink || settings.address || settings.facebook || settings.instagram || settings.tiktok) { %>
       <div>
         <h3><%= t('contact') %></h3>
