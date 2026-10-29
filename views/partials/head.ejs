@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title><%= title ? `${title} | ${settings.store_name}` : `${settings.store_name} — ${loc(settings, 'tagline')}` %></title>
   <meta name="description" content="<%= locals.description || loc(settings, 'tagline') %>">
+  <% if (settings.fb_domain_verification) { %><meta name="facebook-domain-verification" content="<%= settings.fb_domain_verification %>"><% } %>
   <% if (locals.noindex) { %><meta name="robots" content="noindex"><% } %>
   <meta property="og:type" content="website">
   <meta property="og:locale" content="<%= lang === 'fr' ? 'fr_DZ' : 'ar_DZ' %>">

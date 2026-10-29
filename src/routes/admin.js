@@ -472,7 +472,7 @@ router.post('/shipping', (req, res) => {
 
 // ------------------------------------------------------------- settings
 const SETTING_FIELDS = ['store_name', 'tagline', 'announcement', 'phone', 'whatsapp', 'facebook', 'instagram',
-  'tiktok', 'address', 'currency', 'fb_pixel_id', 'tiktok_pixel_id', 'telegram_token', 'telegram_chat_id', 'policy_text',
+  'tiktok', 'address', 'currency', 'fb_pixel_id', 'tiktok_pixel_id', 'fb_domain_verification', 'telegram_token', 'telegram_chat_id', 'policy_text',
   'tagline_fr', 'announcement_fr', 'policy_text_fr'];
 const SOCIAL_FIELDS = ['facebook', 'instagram', 'tiktok'];
 
@@ -488,6 +488,8 @@ router.post('/settings', (req, res) => {
     if (key.startsWith('telegram_')) value = value.replace(/\s+/g, '');
     // Pixel IDs are plain letters and digits; anything else is a copy-paste slip.
     if (key.endsWith('_pixel_id')) value = value.replace(/[^A-Za-z0-9]/g, '');
+    // Meta gives a whole <meta ... content="code"> tag; only the code is kept.
+    if (key === 'fb_domain_verification') value = (/content=["']?([^"'\s>]+)/i.exec(value)?.[1] ?? value).replace(/[^A-Za-z0-9]/g, '');
     // Accept "facebook.com/page" as well as full links.
     if (SOCIAL_FIELDS.includes(key) && value && !/^https?:\/\//i.test(value)) value = `https://${value}`;
     setSetting(key, value);

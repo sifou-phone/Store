@@ -46,6 +46,8 @@
       <input name="fb_pixel_id" value="<%= settings.fb_pixel_id %>" dir="ltr" inputmode="numeric" placeholder="123456789012345"></label>
     <label class="field"><span>TikTok Pixel ID <small>(لتتبع إعلانات تيك توك: ViewContent, AddToCart, CompletePayment)</small></span>
       <input name="tiktok_pixel_id" value="<%= settings.tiktok_pixel_id %>" dir="ltr" autocomplete="off" placeholder="CXXXXXXXXXXXXXXXXXXX"></label>
+    <label class="field"><span>رمز التحقق من النطاق في فيسبوك <small>(Meta Business ← Sécurité de la marque ← Domaines ← Balise méta: الصق الوسم كاملاً أو الرمز فقط)</small></span>
+      <input name="fb_domain_verification" value="<%= settings.fb_domain_verification %>" dir="ltr" autocomplete="off" placeholder='<meta name="facebook-domain-verification" content="...">'></label>
   </section>
 
   <div class="sticky-actions end"><button class="btn btn-dark" type="submit"><%- icon('check') %>حفظ الإعدادات</button></div>

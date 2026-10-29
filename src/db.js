@@ -164,6 +164,7 @@ const DEFAULT_SETTINGS = {
   currency: 'دج',
   fb_pixel_id: '',
   tiktok_pixel_id: '',
+  fb_domain_verification: '',
   telegram_token: '',
   telegram_chat_id: '',
   policy_text:

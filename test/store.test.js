@@ -267,6 +267,22 @@ test('settings keep the Telegram fields and accept links without https', async (
   assert.doesNotMatch(html, /type="url"/);
 });
 
+test('the Facebook domain verification tag is pasted in settings and shown on the shop', async () => {
+  const cookie = await adminCookie();
+  const csrf = await csrfFor(cookie);
+  const res = await fetch(`${base}/admin/settings`, {
+    method: 'POST',
+    headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ _csrf: csrf, fb_domain_verification: ' <meta name="facebook-domain-verification" content="ab12cd34ef56gh78" /> ' }),
+    redirect: 'manual',
+  });
+  assert.equal(res.status, 303);
+  for (const url of ['/', '/p/buds-pro?ad=1']) {
+    const html = await (await fetch(base + url)).text();
+    assert.match(html, /<meta name="facebook-domain-verification" content="ab12cd34ef56gh78">/, url);
+  }
+});
+
 test('SITE_URL sends other hosts to the main domain', () => {
   const { spawnSync } = require('node:child_process');
   const script = `
