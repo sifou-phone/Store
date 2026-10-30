@@ -1,0 +1,60 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(node_modules/**)",
+      "Read(dist/**)",
+      "Read(build/**)",
+      "Read(.next/**)",
+      "Read(coverage/**)",
+      "Read(.turbo/**)",
+      "Read(vendor/**)",
+      "Read(out/**)",
+      "Read(**/*.lock)",
+      "Read(**/*.log)",
+      "Read(**/*.map)",
+      "Read(**/*.min.js)",
+      "Read(**/*.min.css)",
+      "Read(.git/**)",
+      "Read(**/*.wasm)",
+      "Read(**/*.pb)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.env)"
+    ],
+    "ask": [
+      "Read(**/*.png)",
+      "Read(**/*.jpg)",
+      "Read(**/*.jpeg)",
+      "Read(**/*.gif)",
+      "Read(**/*.svg)",
+      "Read(**/*.mp4)",
+      "Read(**/*.mp3)",
+      "Read(**/*.wav)"
+    ]
+  },
+  "enabledPlugins": {
+    "caveman@caveman": true,
+    "context-mode@context-mode": true,
+    "token-optimizer@alexgreensh-token-optimizer": true
+  },
+  "extraKnownMarketplaces": {
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      }
+    },
+    "context-mode": {
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
+      }
+    },
+    "alexgreensh-token-optimizer": {
+      "source": {
+        "source": "github",
+        "repo": "alexgreensh/token-optimizer"
+      }
+    }
+  }
+}
