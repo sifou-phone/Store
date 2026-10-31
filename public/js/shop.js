@@ -214,8 +214,12 @@
       });
     }
     form.addEventListener('focusin', function once() {
-      track('InitiateCheckout');
       form.removeEventListener('focusin', once);
+      var ids = items().map(function (it) { return it.product_id; });
+      // Ad pages have no cart button, so starting the order counts as adding to cart;
+      // otherwise TikTok and Meta never see the AddToCart step of the funnel.
+      if (mode === 'single' && !$('[data-add-to-cart]', form)) track('AddToCart', { ids: ids, value: subtotal() });
+      track('InitiateCheckout', { ids: ids, value: subtotal() });
     });
 
     // Quantity stepper
