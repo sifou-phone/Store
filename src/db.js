@@ -163,7 +163,7 @@ const DEFAULT_SETTINGS = {
   address: '',
   currency: 'دج',
   fb_pixel_id: '',
-  tiktok_pixel_id: '',
+  tiktok_pixel_id: 'DBJ6473C77UEENV8DCL0',
   fb_domain_verification: '',
   fb_capi_token: '',
   fb_test_event_code: '',
@@ -256,6 +256,13 @@ function migrate() {
     const upd = db.prepare('UPDATE wilayas SET home_price = ?, desk_price = ?, desk_available = ? WHERE code = ?');
     transaction(() => WILAYAS.forEach(([code, , , home, desk]) => upd.run(home, desk ?? 0, desk == null ? 0 : 1, code)));
     setSetting('shipping_tariff', TARIFF);
+  }
+
+  // The store's TikTok pixel is filled in once where none is set; clearing it
+  // in the dashboard afterwards is respected.
+  if (!getSettingStmt.get('tiktok_pixel_seeded')) {
+    if (!getSettingStmt.get('tiktok_pixel_id')?.value) setSetting('tiktok_pixel_id', DEFAULT_SETTINGS.tiktok_pixel_id);
+    setSetting('tiktok_pixel_seeded', '1');
   }
 
   const announcement = getSettingStmt.get('announcement');
