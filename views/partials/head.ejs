@@ -35,7 +35,7 @@
   <% if (settings.fb_pixel_id || settings.tiktok_pixel_id) { %>
   <script>
     // One call reports a shop event to every pixel that is set up.
-    // TikTok calls the purchase "CompletePayment" and lists products in "contents".
+    // TikTok lists products in "contents"; its funnel check expects the standard "Purchase" event.
     // d.eventId matches the server's Conversions API event so Meta counts it once.
     window.spTrack = function (ev, d) {
       d = d || {};
@@ -45,7 +45,7 @@
         if (window.fbq) fbq('track', ev, hasValue ? { content_ids: ids, content_type: 'product', value: d.value, currency: 'DZD' } : {}, d.eventId ? { eventID: d.eventId } : undefined);
       } catch (e) {}
       try {
-        if (window.ttq) ttq.track(ev === 'Purchase' ? 'CompletePayment' : ev, hasValue ? {
+        if (window.ttq) ttq.track(ev, hasValue ? {
           contents: ids.map(function (id) { return { content_id: id, content_type: 'product' }; }),
           value: d.value, currency: 'DZD'
         } : {}, d.eventId ? { event_id: d.eventId } : undefined);

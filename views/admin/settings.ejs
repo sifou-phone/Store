@@ -49,7 +49,7 @@
     <% if (capiSet) { %><label class="check"><input type="checkbox" name="fb_capi_clear" value="1"><span>حذف الـ Access Token المحفوظ</span></label><% } %>
     <label class="field"><span>Test Event Code <small>(اختياري، للتجربة فقط: من Events Manager ← Test events. امسحه بعد التأكد وإلا لن تُحسب الطلبات الحقيقية)</small></span>
       <input name="fb_test_event_code" value="<%= settings.fb_test_event_code %>" dir="ltr" autocomplete="off" placeholder="TEST12345"></label>
-    <label class="field"><span>TikTok Pixel ID <small>(لتتبع إعلانات تيك توك: ViewContent, AddToCart, CompletePayment)</small></span>
+    <label class="field"><span>TikTok Pixel ID <small>(لتتبع إعلانات تيك توك: ViewContent, AddToCart, Purchase)</small></span>
       <input name="tiktok_pixel_id" value="<%= settings.tiktok_pixel_id %>" dir="ltr" autocomplete="off" placeholder="CXXXXXXXXXXXXXXXXXXX"></label>
     <label class="field"><span>رمز التحقق من النطاق في فيسبوك <small>(Meta Business ← Sécurité de la marque ← Domaines ← Balise méta: الصق الوسم كاملاً أو الرمز فقط)</small></span>
       <input name="fb_domain_verification" value="<%= settings.fb_domain_verification %>" dir="ltr" autocomplete="off" placeholder='<meta name="facebook-domain-verification" content="...">'></label>
