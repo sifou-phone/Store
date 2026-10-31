@@ -472,12 +472,12 @@ router.post('/shipping', (req, res) => {
 
 // ------------------------------------------------------------- settings
 const SETTING_FIELDS = ['store_name', 'tagline', 'announcement', 'phone', 'whatsapp', 'facebook', 'instagram',
-  'tiktok', 'address', 'currency', 'fb_pixel_id', 'tiktok_pixel_id', 'fb_domain_verification', 'telegram_token', 'telegram_chat_id', 'policy_text',
+  'tiktok', 'address', 'currency', 'fb_pixel_id', 'tiktok_pixel_id', 'fb_domain_verification', 'fb_test_event_code', 'telegram_token', 'telegram_chat_id', 'policy_text',
   'tagline_fr', 'announcement_fr', 'policy_text_fr'];
 const SOCIAL_FIELDS = ['facebook', 'instagram', 'tiktok'];
 
 router.get('/settings', (req, res) => {
-  res.render('admin/settings', { title: 'الإعدادات', error: req.query.err || null });
+  res.render('admin/settings', { title: 'الإعدادات', error: req.query.err || null, capiSet: !!getSetting('fb_capi_token') });
 });
 
 router.post('/settings', (req, res) => {
@@ -485,7 +485,7 @@ router.post('/settings', (req, res) => {
     if (!(key in req.body)) continue;
     let value = clean(req.body[key], key.startsWith('policy_text') ? 5000 : 300);
     // Pasted tokens often carry stray spaces or line breaks.
-    if (key.startsWith('telegram_')) value = value.replace(/\s+/g, '');
+    if (key.startsWith('telegram_') || key === 'fb_test_event_code') value = value.replace(/\s+/g, '');
     // Pixel IDs are plain letters and digits; anything else is a copy-paste slip.
     if (key.endsWith('_pixel_id')) value = value.replace(/[^A-Za-z0-9]/g, '');
     // Meta gives a whole <meta ... content="code"> tag; only the code is kept.
@@ -494,6 +494,10 @@ router.post('/settings', (req, res) => {
     if (SOCIAL_FIELDS.includes(key) && value && !/^https?:\/\//i.test(value)) value = `https://${value}`;
     setSetting(key, value);
   }
+  // The access token is never shown again: an empty box keeps the saved one.
+  const capiToken = clean(req.body.fb_capi_token, 600).replace(/\s+/g, '');
+  if (capiToken) setSetting('fb_capi_token', capiToken);
+  else if (req.body.fb_capi_clear) setSetting('fb_capi_token', '');
   res.redirect(303, '/admin/settings?ok=تم حفظ الإعدادات');
 });
 

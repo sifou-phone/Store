@@ -36,12 +36,13 @@
   <script>
     // One call reports a shop event to every pixel that is set up.
     // TikTok calls the purchase "CompletePayment" and lists products in "contents".
+    // d.eventId matches the server's Conversions API event so Meta counts it once.
     window.spTrack = function (ev, d) {
       d = d || {};
       var ids = (d.ids || []).map(String);
       var hasValue = d.value != null;
       try {
-        if (window.fbq) fbq('track', ev, hasValue ? { content_ids: ids, content_type: 'product', value: d.value, currency: 'DZD' } : {});
+        if (window.fbq) fbq('track', ev, hasValue ? { content_ids: ids, content_type: 'product', value: d.value, currency: 'DZD' } : {}, d.eventId ? { eventID: d.eventId } : undefined);
       } catch (e) {}
       try {
         if (window.ttq) ttq.track(ev === 'Purchase' ? 'CompletePayment' : ev, hasValue ? {

@@ -44,6 +44,11 @@
     <div class="box-head"><h2>التسويق</h2></div>
     <label class="field"><span>Facebook Pixel ID <small>(لتتبع إعلانات فيسبوك: ViewContent, AddToCart, Purchase)</small></span>
       <input name="fb_pixel_id" value="<%= settings.fb_pixel_id %>" dir="ltr" inputmode="numeric" placeholder="123456789012345"></label>
+    <label class="field"><span>Facebook Conversions API — Access Token <small>(يرسل كل طلب من السيرفر مباشرة إلى فيسبوك فيُحسب حتى لو حُجب البيكسل في آيفون أو متصفح فيسبوك. من Events Manager ← البيكسل ← Settings ← Conversions API ← Generate access token)</small></span>
+      <input name="fb_capi_token" value="" dir="ltr" autocomplete="off" placeholder="<%= capiSet ? '•••••••• محفوظ — اتركه فارغاً للإبقاء عليه' : 'EAAG...' %>"></label>
+    <% if (capiSet) { %><label class="check"><input type="checkbox" name="fb_capi_clear" value="1"><span>حذف الـ Access Token المحفوظ</span></label><% } %>
+    <label class="field"><span>Test Event Code <small>(اختياري، للتجربة فقط: من Events Manager ← Test events. امسحه بعد التأكد وإلا لن تُحسب الطلبات الحقيقية)</small></span>
+      <input name="fb_test_event_code" value="<%= settings.fb_test_event_code %>" dir="ltr" autocomplete="off" placeholder="TEST12345"></label>
     <label class="field"><span>TikTok Pixel ID <small>(لتتبع إعلانات تيك توك: ViewContent, AddToCart, CompletePayment)</small></span>
       <input name="tiktok_pixel_id" value="<%= settings.tiktok_pixel_id %>" dir="ltr" autocomplete="off" placeholder="CXXXXXXXXXXXXXXXXXXX"></label>
     <label class="field"><span>رمز التحقق من النطاق في فيسبوك <small>(Meta Business ← Sécurité de la marque ← Domaines ← Balise méta: الصق الوسم كاملاً أو الرمز فقط)</small></span>
