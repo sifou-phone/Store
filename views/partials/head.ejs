@@ -48,7 +48,7 @@
         if (window.ttq) ttq.track(ev === 'Purchase' ? 'CompletePayment' : ev, hasValue ? {
           contents: ids.map(function (id) { return { content_id: id, content_type: 'product' }; }),
           value: d.value, currency: 'DZD'
-        } : {});
+        } : {}, d.eventId ? { event_id: d.eventId } : undefined);
       } catch (e) {}
     };
   </script>
