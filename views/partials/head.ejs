@@ -45,10 +45,18 @@
         if (window.fbq) fbq('track', ev, hasValue ? { content_ids: ids, content_type: 'product', value: d.value, currency: 'DZD' } : {}, d.eventId ? { eventID: d.eventId } : undefined);
       } catch (e) {}
       try {
-        if (window.ttq) ttq.track(ev, hasValue ? {
-          contents: ids.map(function (id) { return { content_id: id, content_type: 'product' }; }),
-          value: d.value, currency: 'DZD'
-        } : {}, d.eventId ? { event_id: d.eventId } : undefined);
+        if (window.ttq) {
+          // Product ids go out whenever there are any, with or without a value,
+          // so no shop event reaches TikTok without a content_id.
+          var tt = {};
+          if (ids.length) {
+            tt.contents = ids.map(function (id) { return { content_id: id, content_type: 'product', quantity: 1 }; });
+            tt.content_id = ids[0];
+            tt.content_type = 'product';
+          }
+          if (hasValue) { tt.value = d.value; tt.currency = 'DZD'; }
+          ttq.track(ev, tt, d.eventId ? { event_id: d.eventId } : undefined);
+        }
       } catch (e) {}
     };
   </script>
