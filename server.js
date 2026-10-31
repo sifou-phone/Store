@@ -5,6 +5,7 @@ const { db, getSettings, UPLOAD_DIR } = require('./src/db');
 const { ensureAdminPassword } = require('./src/auth');
 const { formatPrice, formatDate, ORDER_STATUSES } = require('./src/util');
 const { icon } = require('./src/icons');
+const { rememberAdClick } = require('./src/capi');
 const { LANGS, translator, localize, clientStrings } = require('./src/i18n');
 
 ensureAdminPassword();
@@ -67,6 +68,7 @@ function pickLanguage(req, res) {
 app.use((req, res, next) => {
   const settings = getSettings();
   const lang = pickLanguage(req, res);
+  rememberAdClick(req, res);
   const other = lang === 'fr' ? 'ar' : 'fr';
   const switchUrl = new URL(req.originalUrl, 'http://x');
   switchUrl.searchParams.set('lang', other);

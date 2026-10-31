@@ -5,6 +5,7 @@ const { localize } = require('../i18n');
 const { createOrder } = require('../orders');
 const { communesFor } = require('../communes');
 const { notifyNewOrder } = require('../notify');
+const { reportPurchase } = require('../capi');
 
 const router = express.Router();
 const orderLimit = rateLimiter({ windowMs: 60 * 60 * 1000, max: 8 });
@@ -171,7 +172,11 @@ router.post('/order', (req, res) => {
   const result = createOrder(input, req.ip, res.locals.t, res.locals.lang);
   if (result.errors) return fail(422, result.errors);
 
-  if (!result.duplicate) notifyNewOrder(result.order, result.items, res.locals.baseUrl);
+  if (!result.duplicate) {
+    notifyNewOrder(result.order, result.items, res.locals.baseUrl);
+    const w = db.prepare('SELECT name_fr FROM wilayas WHERE code = ?').get(result.order.wilaya_code);
+    reportPurchase({ order: result.order, items: result.items, wilayaFr: w && w.name_fr, req });
+  }
   const redirect = `/order/${result.order.token}`;
   return wantsJson ? res.json({ ok: true, redirect }) : res.redirect(303, redirect);
 });

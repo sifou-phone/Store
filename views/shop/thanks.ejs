@@ -36,7 +36,7 @@
   (function () {
     var key = 'sp_px_<%= order.id %>';
     try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch (e) {}
-    spTrack('Purchase', { ids: <%- json(items.map((i) => String(i.product_id))) %>, value: <%= order.total %> });
+    spTrack('Purchase', { ids: <%- json(items.map((i) => String(i.product_id))) %>, value: <%= order.total %>, eventId: <%- json('order-' + order.id) %> });
   })();
 </script>
 <% } %>

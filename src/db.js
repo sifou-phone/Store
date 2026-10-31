@@ -165,6 +165,8 @@ const DEFAULT_SETTINGS = {
   fb_pixel_id: '',
   tiktok_pixel_id: '',
   fb_domain_verification: '',
+  fb_capi_token: '',
+  fb_test_event_code: '',
   telegram_token: '',
   telegram_chat_id: '',
   policy_text:
@@ -197,7 +199,7 @@ function getSettings() {
 
 // Secrets never reach templates through getSettings().
 function isPublicKey(key) {
-  return !['admin_hash', 'session_secret'].includes(key);
+  return !['admin_hash', 'session_secret', 'fb_capi_token'].includes(key);
 }
 
 function transaction(fn) {

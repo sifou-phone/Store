@@ -403,3 +403,78 @@ test('ad page mode hides store navigation on one product only', async () => {
   assert.match(other, /class="cat-nav"/);
   assert.match(await (await fetch(`${base}/`)).text(), /class="icon-btn cart-btn"/);
 });
+
+test('orders reach the Meta Conversions API with the same event id as the pixel', async () => {
+  const crypto = require('node:crypto');
+  const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
+  const cookie = await adminCookie();
+  const csrf = await csrfFor(cookie);
+  const save = (fields) => fetch(`${base}/admin/settings`, {
+    method: 'POST',
+    headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ _csrf: csrf, ...fields }),
+    redirect: 'manual',
+  });
+  await save({ fb_pixel_id: '987654321', fb_capi_token: ' EAAtoken123 ', fb_test_event_code: ' TEST42 ' });
+
+  // The token is stored but never printed back, not even on the settings page.
+  const settingsHtml = await (await fetch(`${base}/admin/settings`, { headers: { cookie } })).text();
+  assert.doesNotMatch(settingsHtml, /EAAtoken123/);
+  assert.match(settingsHtml, /محفوظ/);
+  assert.doesNotMatch(await (await fetch(`${base}/`)).text(), /EAAtoken123/);
+
+  // An ad click (?fbclid) is remembered in the _fbc cookie by the server.
+  const landing = await fetch(`${base}/p/buds-pro?fbclid=IwAR0abcDEF123_xyz`);
+  const setCookie = landing.headers.getSetCookie().join('\n');
+  assert.match(setCookie, /_fbc=fb\.1\.\d+\.IwAR0abcDEF123_xyz/);
+  assert.match(setCookie, /_fbp=fb\.1\.\d+\.\d+/);
+
+  const realFetch = globalThis.fetch;
+  const sent = [];
+  globalThis.fetch = (url, opts) => {
+    if (String(url).startsWith('https://graph.facebook.com/')) {
+      sent.push({ url: String(url), body: JSON.parse(opts.body) });
+      return Promise.resolve(new Response('{"events_received":1}', { status: 200 }));
+    }
+    return realFetch(url, opts);
+  };
+  let res;
+  try {
+    const p = product('buds-pro');
+    res = await order({ ...customer, phone: '0661 22 33 44', items: [{ product_id: p.id, qty: 2 }] }, {
+      cookie: '_fbp=fb.1.111.222; _fbc=fb.1.333.IwAR0abc',
+      'user-agent': 'TestAgent/1.0',
+      referer: `${base}/p/buds-pro`,
+    });
+    await new Promise((r) => setTimeout(r, 50));
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  assert.equal(res.status, 200);
+  const { redirect } = await res.json();
+  const saved = db.prepare('SELECT * FROM orders WHERE token = ?').get(redirect.split('/').pop());
+
+  assert.equal(sent.length, 1);
+  assert.match(sent[0].url, /^https:\/\/graph\.facebook\.com\/v\d+\.0\/987654321\/events\?access_token=EAAtoken123$/);
+  assert.equal(sent[0].body.test_event_code, 'TEST42');
+  const ev = sent[0].body.data[0];
+  assert.equal(ev.event_name, 'Purchase');
+  assert.equal(ev.event_id, `order-${saved.id}`);
+  assert.equal(ev.action_source, 'website');
+  assert.equal(ev.event_source_url, `${base}/p/buds-pro`);
+  assert.deepEqual(ev.user_data.ph, [sha('213661223344')]);
+  assert.deepEqual(ev.user_data.country, [sha('dz')]);
+  assert.equal(ev.user_data.fbp, 'fb.1.111.222');
+  assert.equal(ev.user_data.fbc, 'fb.1.333.IwAR0abc');
+  assert.equal(ev.user_data.client_user_agent, 'TestAgent/1.0');
+  assert.equal(ev.custom_data.value, saved.total);
+  assert.equal(ev.custom_data.currency, 'DZD');
+  assert.equal(ev.custom_data.num_items, 2);
+
+  // The thanks page sends the browser Purchase with the same id, so Meta keeps one.
+  const thanks = await (await fetch(`${base}${redirect}`)).text();
+  assert.ok(thanks.includes(`eventId: "order-${saved.id}"`));
+
+  await save({ fb_pixel_id: '', fb_test_event_code: '', fb_capi_clear: '1' });
+  assert.equal(db.prepare("SELECT value FROM settings WHERE key = 'fb_capi_token'").get().value, '');
+});
