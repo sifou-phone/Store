@@ -422,6 +422,53 @@ p { margin: 0 0 1em; }
   .footer-grid { grid-template-columns: 1fr; gap: 24px; }
   .panel { padding: 18px; }
   .mobile-search { display: flex; }
+
+  /* product page: tighter, phone-sized dimensions */
+  .section-tight { padding-top: 12px; }
+  .crumbs { flex-wrap: nowrap; gap: 6px; font-size: 13px; margin-bottom: 10px; white-space: nowrap; overflow: hidden; }
+  .crumbs span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .pdp { gap: 16px; }
+  .thumbs { gap: 8px; margin-top: 8px; }
+  .thumb { width: 60px; height: 60px; }
+  .badge-lg { font-size: 14px; padding: 4px 12px; top: 12px; inset-inline-start: 12px; }
+  .pdp-info .eyebrow { margin-bottom: 6px; font-size: 13px; }
+  .pdp-info h1 { font-size: 22px; margin-bottom: 8px; }
+  .price-row-lg .price { font-size: 26px; }
+  .price-row-lg .price-old { font-size: 16px; }
+  .save { font-size: 13px; }
+  .lead { font-size: 15.5px; margin-top: 8px; }
+  .mini-trust { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 14px 0; }
+  .mini-trust li { flex-direction: column; justify-content: center; text-align: center; gap: 4px; padding: 8px 4px;
+    border-radius: var(--radius-sm); font-size: 12.5px; line-height: 1.3; }
+  .order-form { padding: 14px; margin-top: 16px; }
+  .order-head { margin-bottom: 12px; gap: 8px; }
+  .order-head h2 { font-size: 19px; }
+  .cod-pill { font-size: 13px; padding: 3px 10px; }
+  .field { margin-bottom: 12px; }
+  .field > label, .field > legend { font-size: 14px; margin-bottom: 5px; }
+  .field input:not([type=radio]):not([type=checkbox]), .field select { height: 48px; padding: 0 12px; }
+  .chip span { padding: 7px 14px; }
+  .qty input { height: 42px; }
+  .qty-btn { width: 42px; height: 42px; }
+  .delivery-options { gap: 8px; }
+  .delivery-opt span { padding: 10px; column-gap: 8px; }
+  .delivery-opt .icon { width: 22px; height: 22px; }
+  .delivery-opt b { font-size: 14px; }
+  .delivery-opt em { font-size: 13px; }
+  .summary { padding: 10px 12px; }
+  .summary .summary-total { font-size: 18px; }
+  .form-note { font-size: 13px; }
+  .pdp-details { gap: 12px; margin-top: 24px; }
+  .panel h2 { font-size: 18px; }
+  .section-head-spaced { margin-top: 32px; }
+  .sticky-buy .btn { min-height: 44px; padding: 0 18px; }
+  body:has(.sticky-buy) .site-footer { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 360px) {
+  .delivery-options { grid-template-columns: 1fr; }
+  .delivery-opt span { grid-template-columns: auto 1fr auto; grid-template-rows: auto; }
+  .delivery-opt .icon { grid-row: auto; }
+  .mini-trust li { font-size: 12px; }
 }
 .mobile-search { display: none; margin: 8px 0 4px; max-width: none; }
 .cat-nav.open .mobile-search { display: flex; }
