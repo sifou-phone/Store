@@ -3,6 +3,7 @@ const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 const { WILAYAS, TARIFF } = require('./wilayas');
 const demo = require('./demo');
+const catalog = require('./catalog');
 const { RemoteDatabase } = require('./remote-db');
 
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, '..', 'data'));
@@ -302,7 +303,24 @@ function seed() {
   });
 }
 
+function addCatalog() {
+  const cols = ['name', 'slug', 'category_id', 'price', 'compare_price', 'stock', 'short_desc', 'description',
+    'features', 'variant_label', 'variants', 'images', 'featured', ...demo.FR_FIELDS];
+  const ins = db.prepare(
+    `INSERT OR IGNORE INTO products (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`
+  );
+  const catBySlug = db.prepare('SELECT id FROM categories WHERE slug = ?');
+  for (const p of catalog.PRODUCTS) {
+    const key = `catalog_${p.slug}`;
+    if (getSettingStmt.get(key)) continue;
+    const row = { ...p, category_id: catBySlug.get(p.cat)?.id ?? null, images: JSON.stringify(p.images) };
+    ins.run(...cols.map((c) => row[c] ?? (demo.FR_FIELDS.includes(c) ? '' : null)));
+    setSetting(key, '1');
+  }
+}
+
 migrate();
 seed();
+addCatalog();
 
 module.exports = { db, DB_DRIVER, getSetting, setSetting, getSettings, transaction, UPLOAD_DIR, DATA_DIR };
