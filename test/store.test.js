@@ -45,7 +45,9 @@ const customer = {
   delivery_type: 'home',
 };
 
+let cachedCookie;
 async function adminCookie() {
+  if (cachedCookie) return cachedCookie;
   const res = await fetch(`${base}/admin/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -53,7 +55,8 @@ async function adminCookie() {
     redirect: 'manual',
   });
   assert.equal(res.status, 303);
-  return res.headers.get('set-cookie').split(';')[0];
+  cachedCookie = res.headers.get('set-cookie').split(';')[0];
+  return cachedCookie;
 }
 
 async function csrfFor(cookie) {
@@ -477,4 +480,69 @@ test('orders reach the Meta Conversions API with the same event id as the pixel'
 
   await save({ fb_pixel_id: '', fb_test_event_code: '', fb_capi_clear: '1' });
   assert.equal(db.prepare("SELECT value FROM settings WHERE key = 'fb_capi_token'").get().value, '');
+});
+
+test('the Q69 earbuds get the 2-piece offer at 6,200 DA once', () => {
+  const p = product('q69-bear-bag-earbuds');
+  assert.equal(p.bundle_qty, 2);
+  assert.equal(p.bundle_price, 6200);
+  assert.ok(db.prepare("SELECT value FROM settings WHERE key = 'offer_q69-bear-bag-earbuds'").get());
+});
+
+test('a bundle offer is priced on the server, across colours, and items add up to the subtotal', async () => {
+  const p = product('q69-bear-bag-earbuds');
+  db.prepare('UPDATE products SET stock = 50 WHERE id = ?').run(p.id);
+  const cases = [
+    [[{ variant: 'وردي', qty: 2 }], 6200],
+    [[{ variant: 'وردي', qty: 1 }, { variant: 'أبيض', qty: 1 }], 6200],
+    [[{ variant: 'أسود', qty: 3 }], 6200 + p.price],
+    [[{ variant: 'برتقالي', qty: 1 }], p.price],
+  ];
+  for (const [lines, expected] of cases) {
+    const items = lines.map((l) => ({ product_id: p.id, ...l, price: 1 }));
+    const res = await order({ ...customer, phone: `0661${String(Math.random()).slice(2, 8)}`, items });
+    assert.equal(res.status, 200);
+    const o = db.prepare('SELECT * FROM orders ORDER BY id DESC LIMIT 1').get();
+    assert.equal(o.subtotal, expected);
+    const rows = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(o.id);
+    assert.equal(rows.reduce((s, r) => s + r.price * r.qty, 0), expected);
+    assert.equal(rows.reduce((s, r) => s + r.qty, 0), lines.reduce((s, l) => s + l.qty, 0));
+  }
+});
+
+test('the product page shows the bundle offer', async () => {
+  const html = await (await fetch(`${base}/p/q69-bear-bag-earbuds`)).text();
+  assert.match(html, /data-bundle-qty="2"/);
+  assert.match(html, /data-bundle-price="6200"/);
+  assert.match(html, /6,200/);
+  const api = await (await fetch(`${base}/api/products?ids=${product('q69-bear-bag-earbuds').id}`)).json();
+  assert.equal(api[0].bundle_qty, 2);
+  assert.equal(api[0].bundle_price, 6200);
+});
+
+test('the dashboard saves a bundle offer, refuses one that is not cheaper, and clears it', async () => {
+  const cookie = await adminCookie();
+  const save = async (qty, price, status = 303) => {
+    const form = new FormData();
+    form.set('_csrf', await csrfFor(cookie));
+    form.set('name', 'كابل شحن');
+    form.set('slug', 'cable-bundle-test');
+    form.set('price', '1000');
+    form.set('bundle_qty', qty);
+    form.set('bundle_price', price);
+    form.set('active', '1');
+    const id = product('cable-bundle-test')?.id;
+    const res = await fetch(`${base}/admin/products${id ? `/${id}` : ''}`, { method: 'POST', headers: { cookie }, body: form, redirect: 'manual' });
+    assert.equal(res.status, status);
+    return { p: product('cable-bundle-test'), html: status === 303 ? '' : await res.text() };
+  };
+  let { p } = await save('3', '2700');
+  assert.equal(p.bundle_qty, 3);
+  assert.equal(p.bundle_price, 2700);
+  const refused = await save('2', '2500', 200);
+  assert.match(refused.html, /سعر العرض/);
+  assert.equal(refused.p.bundle_price, 2700);
+  ({ p } = await save('', ''));
+  assert.equal(p.bundle_qty, 0);
+  assert.equal(p.bundle_price, null);
 });

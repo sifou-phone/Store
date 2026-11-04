@@ -135,6 +135,8 @@ router.get('/api/products', (req, res) => {
       image: p.image,
       stock: p.stock,
       free_shipping: !!p.free_shipping,
+      bundle_qty: p.bundle ? p.bundle.qty : 0,
+      bundle_price: p.bundle ? p.bundle.price : 0,
       variants: p.variantList,
       variant_labels: p.variantLabels,
       variant_label: p.variant_label,

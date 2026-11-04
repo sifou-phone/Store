@@ -37,6 +37,7 @@
             <span class="save"><%= t('save_amount', { amount: price(product.compare_price - product.price) }) %></span>
           <% } %>
         </div>
+        <% if (product.bundle) { %><p class="offer-badge"><%= t('offer_badge', { n: product.bundle.qty, price: price(product.bundle.price) }) %></p><% } %>
         <% if (product.short_desc) { %><p class="lead"><%= product.short_desc %></p><% } %>
 
         <ul class="mini-trust">
