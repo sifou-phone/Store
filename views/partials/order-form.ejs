@@ -17,10 +17,18 @@
       <legend><%= t('offer_title') %></legend>
       <div class="offers" data-offers>
         <label class="offer"><input type="radio" name="offer" value="1" checked>
-          <span><b><%= t('offer_one') %></b><strong><%= price(product.price) %></strong></span></label>
+          <span class="offer-body">
+            <span class="offer-dot" aria-hidden="true"></span>
+            <span class="offer-txt"><b><%= t('offer_one') %></b><% if (product.discount) { %><small class="offer-sub">-<%= product.discount %>%</small><% } %></span>
+            <span class="offer-price"><strong><%= price(product.price) %></strong><% if (product.discount) { %><s><%= price(product.compare_price) %></s><% } %></span>
+          </span></label>
         <label class="offer offer-best"><input type="radio" name="offer" value="<%= product.bundle.qty %>">
-          <span><i class="offer-tag"><%= t('offer_best') %></i><b><%= t('offer_n', { n: product.bundle.qty }) %></b><strong><%= price(product.bundle.price) %></strong>
-            <small><%= t('save_amount', { amount: price(product.bundle.saving) }) %></small></span></label>
+          <span class="offer-body">
+            <i class="offer-tag"><%= t('offer_best') %></i>
+            <span class="offer-dot" aria-hidden="true"></span>
+            <span class="offer-txt"><b><%= t('offer_n', { n: product.bundle.qty }) %></b><small class="offer-save"><%= t('save_amount', { amount: price(product.bundle.saving) }) %></small><small class="offer-sub"><%= t('offer_per_piece', { price: price(product.bundle.unit) }) %></small></span>
+            <span class="offer-price"><strong><%= price(product.bundle.price) %></strong><s><%= price(product.bundle.qty * product.price) %></s></span>
+          </span></label>
       </div>
     </fieldset>
     <% } %>

@@ -89,7 +89,7 @@
 <div class="sticky-buy" data-sticky-buy hidden>
   <div>
     <strong><%= price(product.price) %></strong>
-    <span><%= product.name %></span>
+    <span><%= product.bundle ? t('offer_badge', { n: product.bundle.qty, price: price(product.bundle.price) }) : product.name %></span>
   </div>
   <a class="btn btn-dark" href="#order"><%= product.inStock ? t('order_now') : t('out_of_stock') %></a>
 </div>
