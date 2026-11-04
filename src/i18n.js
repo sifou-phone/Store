@@ -69,6 +69,7 @@ const STRINGS = {
   offer_one: ['قطعة واحدة', '1 pièce'],
   offer_n: ['{n} قطع', '{n} pièces'],
   offer_best: ['الأكثر طلباً', 'Le plus choisi'],
+  offer_per_piece: ['{price} للقطعة', '{price} la pièce'],
   offer_badge: ['عرض: {n} بـ {price}', 'Offre : {n} pour {price}'],
   offer_piece_variant: ['{label} القطعة {n}', '{label} de la pièce {n}'],
   free_delivery: ['توصيل مجاني', 'Livraison gratuite'],
