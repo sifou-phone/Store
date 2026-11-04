@@ -93,6 +93,10 @@
           <input name="price" type="number" min="0" step="1" value="<%= product.price %>" required inputmode="numeric"></label>
         <label class="field"><span>السعر قبل التخفيض <small>(يُشطب)</small></span>
           <input name="compare_price" type="number" min="0" step="1" value="<%= product.compare_price ?? '' %>" inputmode="numeric"></label>
+        <label class="field"><span>عرض الكمية: عدد القطع <small>(مثلاً 2 — اتركه فارغاً بدون عرض)</small></span>
+          <input name="bundle_qty" type="number" min="0" max="10" step="1" value="<%= product.bundle_qty || '' %>" inputmode="numeric"></label>
+        <label class="field <%= errors.bundle_price ? 'invalid' : '' %>"><span>سعر هذه القطع معاً (<%= settings.currency %>) <small>(مثلاً 6200)</small></span>
+          <input name="bundle_price" type="number" min="0" step="1" value="<%= product.bundle_price ?? '' %>" inputmode="numeric"></label>
         <label class="field"><span>الكمية في المخزون <small>(اتركه فارغاً لغير محدود)</small></span>
           <input name="stock" type="number" min="0" step="1" value="<%= product.stock ?? '' %>" inputmode="numeric"></label>
       </section>

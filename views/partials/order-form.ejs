@@ -4,7 +4,7 @@
 %>
 <form class="order-form" id="order" method="post" action="/order" novalidate
   data-order-form data-mode="<%= mode %>"
-  <% if (single) { %>data-product-id="<%= product.id %>" data-price="<%= product.price %>" data-free-shipping="<%= product.free_shipping %>" data-stock="<%= product.stock ?? '' %>"<% } %>>
+  <% if (single) { %>data-product-id="<%= product.id %>" data-price="<%= product.price %>" data-free-shipping="<%= product.free_shipping %>" data-stock="<%= product.stock ?? '' %>"<% if (product.bundle) { %> data-bundle-qty="<%= product.bundle.qty %>" data-bundle-price="<%= product.bundle.price %>"<% } %><% } %>>
   <div class="order-head">
     <h2><%= single ? t('order_form_title') : t('delivery_info') %></h2>
     <span class="cod-pill"><%- icon('cash') %><%= t('trust_cod_t') %></span>
@@ -12,6 +12,18 @@
 
   <% if (single) { %>
     <input type="hidden" name="product_id" value="<%= product.id %>">
+    <% if (product.bundle && product.inStock && (product.stock == null || product.stock >= product.bundle.qty)) { %>
+    <fieldset class="field">
+      <legend><%= t('offer_title') %></legend>
+      <div class="offers" data-offers>
+        <label class="offer"><input type="radio" name="offer" value="1" checked>
+          <span><b><%= t('offer_one') %></b><strong><%= price(product.price) %></strong></span></label>
+        <label class="offer offer-best"><input type="radio" name="offer" value="<%= product.bundle.qty %>">
+          <span><i class="offer-tag"><%= t('offer_best') %></i><b><%= t('offer_n', { n: product.bundle.qty }) %></b><strong><%= price(product.bundle.price) %></strong>
+            <small><%= t('save_amount', { amount: price(product.bundle.saving) }) %></small></span></label>
+      </div>
+    </fieldset>
+    <% } %>
     <% if (product.variantList.length) { %>
     <fieldset class="field">
       <legend><%= product.variant_label %></legend>
@@ -21,6 +33,16 @@
         <% }) %>
       </div>
     </fieldset>
+    <% if (product.bundle) { for (let n = 2; n <= product.bundle.qty; n++) { %>
+    <fieldset class="field" data-extra-variant hidden>
+      <legend><%= t('offer_piece_variant', { label: product.variant_label, n }) %></legend>
+      <div class="chips">
+        <% product.variantList.forEach((v, i) => { %>
+          <label class="chip"><input type="radio" name="variant_<%= n %>" value="<%= v %>" <%= i === 0 ? 'checked' : '' %>><span><%= product.variantLabels[i] %></span></label>
+        <% }) %>
+      </div>
+    </fieldset>
+    <% } } %>
     <% } %>
     <div class="field">
       <label for="qty"><%= t('quantity') %></label>

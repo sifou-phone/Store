@@ -1,6 +1,6 @@
 const crypto = require('node:crypto');
 const { db, transaction } = require('./db');
-const { normalizePhone, toInt, clean, hydrateProduct, RELEASED_STATUSES, ORDER_STATUSES } = require('./util');
+const { normalizePhone, toInt, clean, hydrateProduct, priceLines, RELEASED_STATUSES, ORDER_STATUSES } = require('./util');
 const { translator } = require('./i18n');
 
 const MAX_LINES = 20;
@@ -79,7 +79,8 @@ function createOrder(input, ip = '', t = translator('ar'), lang = 'ar') {
     } else {
       variant = '';
     }
-    if (product.stock != null && product.stock < item.qty) {
+    const wanted = item.qty + lines.filter((l) => l.product.id === product.id).reduce((s, l) => s + l.qty, 0);
+    if (product.stock != null && product.stock < wanted) {
       errors.items =
         product.stock > 0
           ? t('err_stock_left', { name: shown.name, n: product.stock })
@@ -92,7 +93,7 @@ function createOrder(input, ip = '', t = translator('ar'), lang = 'ar') {
 
   if (Object.keys(errors).length) return { errors };
 
-  const subtotal = lines.reduce((s, l) => s + l.product.price * l.qty, 0);
+  const { subtotal, rows } = priceLines(lines);
   const shipping = shippingFor(wilaya, deliveryType, lines);
   const total = subtotal + shipping;
 
@@ -124,9 +125,9 @@ function createOrder(input, ip = '', t = translator('ar'), lang = 'ar') {
     const takeStock = db.prepare(
       'UPDATE products SET stock = stock - ? WHERE id = ? AND stock IS NOT NULL'
     );
-    for (const l of lines) {
-      insItem.run(orderId, l.product.id, l.product.name, l.variant, l.product.price, l.qty);
-      takeStock.run(l.qty, l.product.id);
+    for (const r of rows) {
+      insItem.run(orderId, r.product.id, r.product.name, r.variant, r.price, r.qty);
+      takeStock.run(r.qty, r.product.id);
     }
     db.prepare("INSERT INTO order_history (order_id, status, note) VALUES (?, 'new', 'تم إنشاء الطلب')").run(orderId);
     return db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);

@@ -8,7 +8,7 @@ const auth = require('../auth');
 const { sendTelegram } = require('../notify');
 const { setOrderStatus } = require('../orders');
 const {
-  ORDER_STATUSES, hydrateProduct, parseImages, slugify, toInt, clean, rateLimiter, formatDate,
+  ORDER_STATUSES, hydrateProduct, bundleOf, parseImages, slugify, toInt, clean, rateLimiter, formatDate,
 } = require('../util');
 
 const router = express.Router();
@@ -251,7 +251,7 @@ function productForm(res, product, errors = {}) {
 
 const EMPTY_PRODUCT = {
   name: '', slug: '', category_id: null, price: '', compare_price: '', stock: '', short_desc: '',
-  description: '', features: '', variant_label: 'اللون', variants: '', images: '[]', active: 1, featured: 0, free_shipping: 0, ad_mode: 0,
+  description: '', features: '', variant_label: 'اللون', variants: '', images: '[]', active: 1, featured: 0, free_shipping: 0, ad_mode: 0, bundle_qty: 0, bundle_price: null,
   name_fr: '', short_desc_fr: '', description_fr: '', features_fr: '', variant_label_fr: '', variants_fr: '',
 };
 
@@ -322,6 +322,8 @@ function saveProduct(req, res) {
     featured: b.featured ? 1 : 0,
     free_shipping: b.free_shipping ? 1 : 0,
     ad_mode: b.ad_mode ? 1 : 0,
+    bundle_qty: toInt(b.bundle_qty, 0),
+    bundle_price: toInt(b.bundle_price),
   };
 
   const errors = {};
@@ -329,6 +331,15 @@ function saveProduct(req, res) {
   if (product.price == null || product.price < 0) errors.price = 'السعر مطلوب';
   if (product.compare_price != null && product.compare_price <= (product.price || 0)) product.compare_price = null;
   if (product.stock != null && product.stock < 0) product.stock = 0;
+  // An offer that is not cheaper than single pieces (or not set) is dropped.
+  if (!bundleOf(product)) {
+    if (product.bundle_qty >= 2 && product.bundle_price != null) {
+      errors.bundle_price = `سعر العرض يجب أن يكون أقل من ${product.bundle_qty * (product.price || 0)} ويقبل القسمة على ${product.bundle_qty}`;
+    } else {
+      product.bundle_qty = 0;
+      product.bundle_price = null;
+    }
+  }
   if (Object.keys(errors).length) {
     // New photos were only held in memory; nothing to clean up.
     return productForm(res, { ...product, images: existing?.images || '[]', id }, errors);
@@ -338,7 +349,7 @@ function saveProduct(req, res) {
   product.slug = uniqueSlug(clean(b.slug, 80) || existing?.slug || product.name, id);
   const cols = ['name', 'slug', 'category_id', 'price', 'compare_price', 'stock', 'short_desc', 'description',
     'features', 'variant_label', 'variants', 'images', 'active', 'featured', 'free_shipping', 'ad_mode',
-    'name_fr', 'short_desc_fr', 'description_fr', 'features_fr', 'variant_label_fr', 'variants_fr'];
+    'bundle_qty', 'bundle_price', 'name_fr', 'short_desc_fr', 'description_fr', 'features_fr', 'variant_label_fr', 'variants_fr'];
   const values = cols.map((c) => product[c]);
   const insMedia = db.prepare('INSERT INTO media (name, mime, data) VALUES (?, ?, ?)');
   transaction(() => {

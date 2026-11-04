@@ -66,10 +66,44 @@
     var addressField = $('[data-address-field]', form);
     var cartLines = []; // cart mode: [{product, variant, qty}]
 
-    function subtotal() {
-      if (mode === 'single') return Number(form.dataset.price) * (Number(qtyInput.value) || 1);
-      return cartLines.reduce(function (s, l) { return s + l.product.price * l.qty; }, 0);
+    // Mirrors the server: pieces of one product count together towards its bundle offer.
+    function productTotal(unit, qty, bundleQty, bundlePrice) {
+      if (!(bundleQty >= 2) || !(bundlePrice > 0) || bundlePrice >= bundleQty * unit || bundlePrice % bundleQty) return unit * qty;
+      return Math.floor(qty / bundleQty) * bundlePrice + (qty % bundleQty) * unit;
     }
+    function subtotal() {
+      if (mode === 'single') {
+        return productTotal(Number(form.dataset.price), Number(qtyInput.value) || 1,
+          Number(form.dataset.bundleQty), Number(form.dataset.bundlePrice));
+      }
+      var byProduct = {};
+      cartLines.forEach(function (l) {
+        var e = byProduct[l.product.id] || (byProduct[l.product.id] = { p: l.product, qty: 0 });
+        e.qty += l.qty;
+      });
+      return Object.keys(byProduct).reduce(function (s, id) {
+        var e = byProduct[id];
+        return s + productTotal(e.p.price, e.qty, e.p.bundle_qty, e.p.bundle_price);
+      }, 0);
+    }
+    var offerRadios = $all('input[name="offer"]', form);
+    var extraVariants = $all('[data-extra-variant]', form);
+    // The offer cards set the quantity; picking the bundle shows a colour choice per piece.
+    function syncOffer() {
+      var q = Number(qtyInput && qtyInput.value) || 1;
+      var bundleQty = Number(form.dataset.bundleQty) || 0;
+      offerRadios.forEach(function (r) { r.checked = Number(r.value) === q; });
+      extraVariants.forEach(function (f) { f.hidden = q !== bundleQty; });
+    }
+    offerRadios.forEach(function (r) {
+      r.addEventListener('change', function () {
+        if (!r.checked) return;
+        var max = Number(qtyInput.max) || 20;
+        qtyInput.value = Math.min(Number(r.value), max);
+        syncOffer();
+        update();
+      });
+    });
     function allFree() {
       if (mode === 'single') return form.dataset.freeShipping === '1';
       return cartLines.length > 0 && cartLines.every(function (l) { return l.product.free_shipping; });
@@ -138,7 +172,17 @@
     function items() {
       if (mode === 'single') {
         var v = $('input[name="variant"]:checked', form);
-        return [{ product_id: Number(form.dataset.productId), variant: v ? v.value : '', qty: Number(qtyInput.value) || 1 }];
+        var id = Number(form.dataset.productId);
+        var q = Number(qtyInput.value) || 1;
+        var shown = extraVariants.filter(function (f) { return !f.hidden; });
+        if (!shown.length) return [{ product_id: id, variant: v ? v.value : '', qty: q }];
+        // One piece per chosen colour; the server merges equal colours.
+        var list = [{ product_id: id, variant: v ? v.value : '', qty: q - shown.length }];
+        shown.forEach(function (f) {
+          var c = $('input[type="radio"]:checked', f);
+          list.push({ product_id: id, variant: c ? c.value : '', qty: 1 });
+        });
+        return list;
       }
       return cartLines.map(function (l) { return { product_id: l.product.id, variant: l.variant, qty: l.qty }; });
     }
@@ -228,17 +272,18 @@
         var max = Number(qtyInput.max) || 20;
         var v = (Number(qtyInput.value) || 1) + Number(btn.dataset.qtyStep);
         qtyInput.value = Math.min(Math.max(v, 1), max);
+        syncOffer();
         update();
       });
     });
-    if (qtyInput) qtyInput.addEventListener('input', update);
+    if (qtyInput) qtyInput.addEventListener('input', function () { syncOffer(); update(); });
 
     var addBtn = $('[data-add-to-cart]', form);
     if (addBtn) {
       addBtn.addEventListener('click', function () {
-        var it = items()[0];
-        addToCart(it.product_id, it.variant, it.qty);
-        track('AddToCart', { ids: [it.product_id], value: subtotal() });
+        var list = items();
+        list.forEach(function (it) { if (it.qty > 0) addToCart(it.product_id, it.variant, it.qty); });
+        track('AddToCart', { ids: [list[0].product_id], value: subtotal() });
         toast(t('added_to_cart') + ' <a href="/cart">' + t('view_cart') + '</a>');
       });
     }

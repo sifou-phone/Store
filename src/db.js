@@ -240,6 +240,8 @@ function migrate() {
     variant_label_fr: "TEXT NOT NULL DEFAULT ''",
     variants_fr: "TEXT NOT NULL DEFAULT ''",
     ad_mode: 'INTEGER NOT NULL DEFAULT 0',
+    bundle_qty: 'INTEGER NOT NULL DEFAULT 0',
+    bundle_price: 'INTEGER',
   });
 
   addColumns('wilayas', { desk_available: 'INTEGER NOT NULL DEFAULT 1' });
@@ -319,8 +321,21 @@ function addCatalog() {
   }
 }
 
+// Bundle offers the owner asked for are set once; editing or removing the
+// offer from the dashboard afterwards is respected.
+function addOffers() {
+  const upd = db.prepare('UPDATE products SET bundle_qty = ?, bundle_price = ? WHERE slug = ?');
+  for (const o of catalog.OFFERS) {
+    const key = `offer_${o.slug}`;
+    if (getSettingStmt.get(key)) continue;
+    upd.run(o.qty, o.price, o.slug);
+    setSetting(key, `${o.qty}x${o.price}`);
+  }
+}
+
 migrate();
 seed();
 addCatalog();
+addOffers();
 
 module.exports = { db, DB_DRIVER, getSetting, setSetting, getSettings, transaction, UPLOAD_DIR, DATA_DIR };

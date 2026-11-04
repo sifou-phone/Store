@@ -33,4 +33,7 @@ const PRODUCTS = [
   },
 ];
 
-module.exports = { PRODUCTS };
+// Bundle offers: `qty` pieces of the product for `price` in total.
+const OFFERS = [{ slug: 'q69-bear-bag-earbuds', qty: 2, price: 6200 }];
+
+module.exports = { PRODUCTS, OFFERS };
