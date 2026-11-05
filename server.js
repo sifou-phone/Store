@@ -40,7 +40,18 @@ if (SITE_HOST) {
   });
 }
 
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d' }));
+const PUBLIC_DIR = path.join(__dirname, 'public');
+app.use(express.static(PUBLIC_DIR, { maxAge: '7d' }));
+// Browsers keep CSS/JS for 7 days, so each link carries a version taken from
+// the file's contents: a changed file gets a new URL and is fetched again.
+const assetVersions = new Map();
+app.locals.asset = (file) => {
+  if (!assetVersions.has(file)) {
+    const data = require('node:fs').readFileSync(path.join(PUBLIC_DIR, file));
+    assetVersions.set(file, require('node:crypto').createHash('sha256').update(data).digest('hex').slice(0, 10));
+  }
+  return `${file}?v=${assetVersions.get(file)}`;
+};
 // Product photos: stored in the database; older ones may still be files on disk.
 app.get('/uploads/:name', (req, res, next) => {
   const row = db.prepare('SELECT mime, data FROM media WHERE name = ?').get(req.params.name);

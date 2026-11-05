@@ -546,3 +546,11 @@ test('the dashboard saves a bundle offer, refuses one that is not cheaper, and c
   assert.equal(p.bundle_qty, 0);
   assert.equal(p.bundle_price, null);
 });
+
+test('stylesheet and script links carry a version taken from the file contents', async () => {
+  const crypto = require('node:crypto');
+  const hash = (f) => crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname, '..', 'public', f))).digest('hex').slice(0, 10);
+  const html = await (await fetch(`${base}/p/q69-bear-bag-earbuds`)).text();
+  assert.ok(html.includes(`/css/style.css?v=${hash('css/style.css')}`));
+  assert.ok(html.includes(`/js/shop.js?v=${hash('js/shop.js')}`));
+});
