@@ -31,12 +31,14 @@
   </div>
 </section>
 <script>try { if (sessionStorage.getItem('sp_clear_cart') === '1') { localStorage.removeItem('sp_cart'); sessionStorage.removeItem('sp_clear_cart'); } } catch (e) {}</script>
-<% if (settings.fb_pixel_id || settings.tiktok_pixel_id) { %>
+<% if (sendPurchase && (settings.fb_pixel_id || settings.tiktok_pixel_id)) { %>
 <script>
+  // When the Conversions API is set up the server already sent this Purchase to
+  // Meta; the pixel skips it (fb: false) so Meta never counts an order twice.
   (function () {
     var key = 'sp_px_<%= order.id %>';
     try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch (e) {}
-    spTrack('Purchase', { ids: <%- json(items.map((i) => String(i.product_id))) %>, value: <%= order.total %>, eventId: <%- json('order-' + order.id) %> });
+    spTrack('Purchase', { ids: <%- json(items.map((i) => String(i.product_id))) %>, value: <%= order.total %>, eventId: <%- json('order-' + order.id) %>, fb: <%- json(!settings.fb_capi_token) %> });
   })();
 </script>
 <% } %>

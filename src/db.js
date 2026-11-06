@@ -245,6 +245,12 @@ function migrate() {
   });
 
   addColumns('wilayas', { desk_available: 'INTEGER NOT NULL DEFAULT 1' });
+  // Set once the thanks page has sent the order's Purchase to the pixels.
+  // Orders placed before this column existed were already reported.
+  if (!columnNames('orders').has('purchase_sent')) {
+    addColumns('orders', { purchase_sent: 'INTEGER NOT NULL DEFAULT 0' });
+    db.exec('UPDATE orders SET purchase_sent = 1');
+  }
 
   // New wilayas are added; prices the owner already edited are kept.
   // A null desk price means the courier has no stop desk there.

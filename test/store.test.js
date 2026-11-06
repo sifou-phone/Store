@@ -474,9 +474,25 @@ test('orders reach the Meta Conversions API with the same event id as the pixel'
   assert.equal(ev.custom_data.currency, 'DZD');
   assert.equal(ev.custom_data.num_items, 2);
 
-  // The thanks page sends the browser Purchase with the same id, so Meta keeps one.
+  // With the Conversions API on, the server alone reports the Purchase to Meta:
+  // the browser pixel skips it (TikTok still gets it), so no order counts twice.
   const thanks = await (await fetch(`${base}${redirect}`)).text();
   assert.ok(thanks.includes(`eventId: "order-${saved.id}"`));
+  assert.ok(thanks.includes('fb: false'));
+  assert.match(thanks, /if \(window\.fbq && d\.fb !== false\)/);
+
+  // The thanks page sends the Purchase on its first view only: a refresh or a
+  // later visit (another browser, cleared storage) never sends it again.
+  assert.equal(db.prepare('SELECT purchase_sent FROM orders WHERE id = ?').get(saved.id).purchase_sent, 1);
+  const again = await (await fetch(`${base}${redirect}`)).text();
+  assert.doesNotMatch(again, /spTrack\('Purchase'/);
+  assert.match(again, new RegExp(`order-${saved.id}|#${saved.id}`));
+
+  // Without a token the browser pixel is the only reporter, so it sends the Purchase.
+  await save({ fb_capi_clear: '1' });
+  db.prepare('UPDATE orders SET purchase_sent = 0 WHERE id = ?').run(saved.id);
+  const pixelOnly = await (await fetch(`${base}${redirect}`)).text();
+  assert.ok(pixelOnly.includes('fb: true'));
 
   await save({ fb_pixel_id: '', fb_test_event_code: '', fb_capi_clear: '1' });
   assert.equal(db.prepare("SELECT value FROM settings WHERE key = 'fb_capi_token'").get().value, '');
