@@ -317,6 +317,9 @@ test('TikTok and Facebook pixels share the shop events', async () => {
   const html = await (await fetch(`${base}/p/buds-pro`)).text();
   assert.match(html, /ttq\.load\("CABC123x"\)/);
   assert.match(html, /fbq\('init', "123456"\)/);
+  // Meta's automatic events stay off: they sent their own Purchase, without
+  // the order's eventID, when the order button was clicked.
+  assert.match(html, /fbq\('set', 'autoConfig', false, "123456"\); fbq\('init'/);
   assert.match(html, /spTrack\('ViewContent', \{ ids: \[\d+\], value: \d+ \}\)/);
 
   await fetch(`${base}/admin/settings`, {
