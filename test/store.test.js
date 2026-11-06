@@ -481,8 +481,16 @@ test('orders reach the Meta Conversions API with the same event id as the pixel'
   assert.ok(thanks.includes('fb: false'));
   assert.match(thanks, /if \(window\.fbq && d\.fb !== false\)/);
 
+  // The thanks page sends the Purchase on its first view only: a refresh or a
+  // later visit (another browser, cleared storage) never sends it again.
+  assert.equal(db.prepare('SELECT purchase_sent FROM orders WHERE id = ?').get(saved.id).purchase_sent, 1);
+  const again = await (await fetch(`${base}${redirect}`)).text();
+  assert.doesNotMatch(again, /spTrack\('Purchase'/);
+  assert.match(again, new RegExp(`order-${saved.id}|#${saved.id}`));
+
   // Without a token the browser pixel is the only reporter, so it sends the Purchase.
   await save({ fb_capi_clear: '1' });
+  db.prepare('UPDATE orders SET purchase_sent = 0 WHERE id = ?').run(saved.id);
   const pixelOnly = await (await fetch(`${base}${redirect}`)).text();
   assert.ok(pixelOnly.includes('fb: true'));
 

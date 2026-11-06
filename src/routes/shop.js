@@ -204,8 +204,12 @@ router.get('/order/:token', (req, res, next) => {
     });
   const wilaya = db.prepare('SELECT name_ar, name_fr FROM wilayas WHERE code = ?').get(order.wilaya_code);
   const wilayaName = wilaya ? (lang === 'fr' ? wilaya.name_fr : wilaya.name_ar) : order.wilaya_name;
+  // The pixels get the Purchase on the first view of this page only, so a
+  // refresh, a return visit or another browser never counts the order again.
+  const sendPurchase =
+    db.prepare('UPDATE orders SET purchase_sent = 1 WHERE id = ? AND purchase_sent = 0').run(order.id).changes === 1;
   res.set('Cache-Control', 'no-store');
-  res.render('shop/thanks', { title: res.locals.t('thanks_title'), order, items, wilayaName, noindex: true });
+  res.render('shop/thanks', { title: res.locals.t('thanks_title'), order, items, wilayaName, sendPurchase, noindex: true });
 });
 
 router.get('/robots.txt', (req, res) => {
