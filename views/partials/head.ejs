@@ -36,13 +36,13 @@
   <script>
     // One call reports a shop event to every pixel that is set up.
     // TikTok lists products in "contents"; its funnel check expects the standard "Purchase" event.
-    // d.eventId matches the server's Conversions API event so Meta counts it once.
+    // d.fb === false keeps an event off the Meta pixel (the server reports it instead).
     window.spTrack = function (ev, d) {
       d = d || {};
       var ids = (d.ids || []).map(String);
       var hasValue = d.value != null;
       try {
-        if (window.fbq) fbq('track', ev, hasValue ? { content_ids: ids, content_type: 'product', value: d.value, currency: 'DZD' } : {}, d.eventId ? { eventID: d.eventId } : undefined);
+        if (window.fbq && d.fb !== false) fbq('track', ev, hasValue ? { content_ids: ids, content_type: 'product', value: d.value, currency: 'DZD' } : {}, d.eventId ? { eventID: d.eventId } : undefined);
       } catch (e) {}
       try {
         if (window.ttq) {
