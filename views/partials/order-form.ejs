@@ -3,7 +3,7 @@
   const single = mode === 'single';
 %>
 <form class="order-form" id="order" method="post" action="/order" novalidate
-  data-order-form data-mode="<%= mode %>"
+  data-order-form data-mode="<%= mode %>" data-address-required="<%= settings.address_required === '1' ? '1' : '0' %>"
   <% if (single) { %>data-product-id="<%= product.id %>" data-price="<%= product.price %>" data-free-shipping="<%= product.free_shipping %>" data-stock="<%= product.stock ?? '' %>"<% if (product.bundle) { %> data-bundle-qty="<%= product.bundle.qty %>" data-bundle-price="<%= product.bundle.price %>"<% } %><% } %>>
   <div class="order-head">
     <h2><%= single ? t('order_form_title') : t('delivery_info') %></h2>
@@ -105,7 +105,7 @@
   </fieldset>
 
   <div class="field" data-address-field>
-    <label for="address"><%= t('address') %></label>
+    <label for="address"><%= t('address') %><% if (settings.address_required !== '1') { %> <small class="muted">(<%= t('optional') %>)</small><% } %></label>
     <input id="address" name="address" autocomplete="street-address" maxlength="200" placeholder="<%= t('address_ph') %>">
     <small class="err" data-err="address"></small>
   </div>

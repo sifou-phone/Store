@@ -108,7 +108,8 @@ test('invalid orders are rejected with field errors', async () => {
   const res = await order({ customer_name: 'a', phone: '123', wilaya: 99, commune: '', delivery_type: 'home', items: [{ product_id: p.id, qty: 1, variant: 'أحمر' }] });
   assert.equal(res.status, 422);
   const { errors } = await res.json();
-  for (const k of ['customer_name', 'phone', 'wilaya', 'commune', 'address', 'items']) assert.ok(errors[k], k);
+  for (const k of ['customer_name', 'phone', 'wilaya', 'commune', 'items']) assert.ok(errors[k], k);
+  assert.equal(errors.address, undefined, 'the address is optional by default');
 
   const tooMany = await order({ ...customer, phone: '0777000222', items: [{ product_id: p.id, variant: 'أسود', qty: p.stock + 1 }] });
   assert.equal(tooMany.status, 422);
@@ -482,20 +483,57 @@ test('orders reach the Meta Conversions API with the same event id as the pixel'
   assert.equal(db.prepare("SELECT value FROM settings WHERE key = 'fb_capi_token'").get().value, '');
 });
 
-test('the Q69 earbuds get the 2-piece offer at 6,200 DA once', () => {
+test('the Q69 earbuds get the 2-piece offer at 6,500 DA once', () => {
   const p = product('q69-bear-bag-earbuds');
   assert.equal(p.bundle_qty, 2);
-  assert.equal(p.bundle_price, 6200);
+  assert.equal(p.bundle_price, 6500);
   assert.ok(db.prepare("SELECT value FROM settings WHERE key = 'offer_q69-bear-bag-earbuds'").get());
+});
+
+test('the Q69 earbuds sell at 3,900 DA (was 5,500) with free delivery and free exchange', async () => {
+  const p = product('q69-bear-bag-earbuds');
+  assert.equal(p.price, 3900);
+  assert.equal(p.compare_price, 5500);
+  assert.equal(p.free_shipping, 1);
+  assert.equal(p.free_exchange, 1);
+  const html = await (await fetch(`${base}/p/q69-bear-bag-earbuds`)).text();
+  assert.match(html, /توصيل مجاني لـ \d+ ولاية/);
+  assert.match(html, /استبدال مجاني/);
+  assert.match(html, /الأكثر طلباً/);
+  // Free for home and desk delivery alike.
+  for (const delivery_type of ['home', 'desk']) {
+    const res = await order({ ...customer, phone: `0662${String(Math.random()).slice(2, 8)}`, delivery_type, items: [{ product_id: p.id, variant: 'وردي', qty: 1 }] });
+    assert.equal(res.status, 200);
+    const o = db.prepare('SELECT * FROM orders ORDER BY id DESC LIMIT 1').get();
+    assert.equal(o.shipping, 0);
+    assert.equal(o.total, 3900);
+  }
+});
+
+test('the dashboard can make the address required again', async () => {
+  const p = product('nova-x12');
+  const noAddress = { ...customer, phone: '0663000444', address: '', items: [{ product_id: p.id, variant: 'أسود', qty: 1 }] };
+  assert.equal((await order(noAddress)).status, 200);
+  const cookie = await adminCookie();
+  const post = async (fields) => {
+    const body = new URLSearchParams({ _csrf: await csrfFor(cookie), address_required_form: '1', ...fields });
+    await fetch(`${base}/admin/settings`, { method: 'POST', headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' }, body, redirect: 'manual' });
+  };
+  await post({ address_required: '1' });
+  const res = await order({ ...noAddress, phone: '0663000555' });
+  assert.equal(res.status, 422);
+  assert.ok((await res.json()).errors.address);
+  await post({});
+  assert.equal(db.prepare("SELECT value FROM settings WHERE key = 'address_required'").get().value, '0');
 });
 
 test('a bundle offer is priced on the server, across colours, and items add up to the subtotal', async () => {
   const p = product('q69-bear-bag-earbuds');
   db.prepare('UPDATE products SET stock = 50 WHERE id = ?').run(p.id);
   const cases = [
-    [[{ variant: 'وردي', qty: 2 }], 6200],
-    [[{ variant: 'وردي', qty: 1 }, { variant: 'أبيض', qty: 1 }], 6200],
-    [[{ variant: 'أسود', qty: 3 }], 6200 + p.price],
+    [[{ variant: 'وردي', qty: 2 }], 6500],
+    [[{ variant: 'وردي', qty: 1 }, { variant: 'أبيض', qty: 1 }], 6500],
+    [[{ variant: 'أسود', qty: 3 }], 6500 + p.price],
     [[{ variant: 'برتقالي', qty: 1 }], p.price],
   ];
   for (const [lines, expected] of cases) {
@@ -513,11 +551,11 @@ test('a bundle offer is priced on the server, across colours, and items add up t
 test('the product page shows the bundle offer', async () => {
   const html = await (await fetch(`${base}/p/q69-bear-bag-earbuds`)).text();
   assert.match(html, /data-bundle-qty="2"/);
-  assert.match(html, /data-bundle-price="6200"/);
-  assert.match(html, /6,200/);
+  assert.match(html, /data-bundle-price="6500"/);
+  assert.match(html, /6,500/);
   const api = await (await fetch(`${base}/api/products?ids=${product('q69-bear-bag-earbuds').id}`)).json();
   assert.equal(api[0].bundle_qty, 2);
-  assert.equal(api[0].bundle_price, 6200);
+  assert.equal(api[0].bundle_price, 6500);
 });
 
 test('the dashboard saves a bundle offer, refuses one that is not cheaper, and clears it', async () => {

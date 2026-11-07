@@ -162,6 +162,7 @@ const DEFAULT_SETTINGS = {
   instagram: '',
   tiktok: '',
   address: '',
+  address_required: '0',
   currency: 'دج',
   fb_pixel_id: '',
   tiktok_pixel_id: 'DBJ6473C77UEENV8DCL0',
@@ -242,6 +243,7 @@ function migrate() {
     ad_mode: 'INTEGER NOT NULL DEFAULT 0',
     bundle_qty: 'INTEGER NOT NULL DEFAULT 0',
     bundle_price: 'INTEGER',
+    free_exchange: 'INTEGER NOT NULL DEFAULT 0',
   });
 
   addColumns('wilayas', { desk_available: 'INTEGER NOT NULL DEFAULT 1' });
@@ -321,15 +323,20 @@ function addCatalog() {
   }
 }
 
-// Bundle offers the owner asked for are set once; editing or removing the
-// offer from the dashboard afterwards is respected.
+// Offers the owner asked for are applied once per change of the offer;
+// edits made from the dashboard afterwards are respected until the next change.
 function addOffers() {
-  const upd = db.prepare('UPDATE products SET bundle_qty = ?, bundle_price = ? WHERE slug = ?');
+  const upd = db.prepare(
+    `UPDATE products SET bundle_qty = ?, bundle_price = ?, price = COALESCE(?, price), compare_price = COALESCE(?, compare_price),
+     free_shipping = ?, free_exchange = ? WHERE slug = ?`
+  );
   for (const o of catalog.OFFERS) {
     const key = `offer_${o.slug}`;
-    if (getSettingStmt.get(key)) continue;
-    upd.run(o.qty, o.price, o.slug);
-    setSetting(key, `${o.qty}x${o.price}`);
+    const spec = [`${o.qty}x${o.price}`, o.unit, o.compare, o.free_shipping ? 'ship' : '', o.free_exchange ? 'exchange' : '']
+      .filter(Boolean).join(';');
+    if (getSettingStmt.get(key)?.value === spec) continue;
+    upd.run(o.qty, o.price, o.unit ?? null, o.compare ?? null, o.free_shipping ? 1 : 0, o.free_exchange ? 1 : 0, o.slug);
+    setSetting(key, spec);
   }
 }
 

@@ -33,7 +33,10 @@ const PRODUCTS = [
   },
 ];
 
-// Bundle offers: `qty` pieces of the product for `price` in total.
-const OFFERS = [{ slug: 'q69-bear-bag-earbuds', qty: 2, price: 6200 }];
+// Offers the owner asked for: `qty` pieces for `price` in total, plus the single
+// price, the struck-through price, free delivery and free exchange.
+const OFFERS = [
+  { slug: 'q69-bear-bag-earbuds', qty: 2, price: 6500, unit: 3900, compare: 5500, free_shipping: 1, free_exchange: 1 },
+];
 
 module.exports = { PRODUCTS, OFFERS };

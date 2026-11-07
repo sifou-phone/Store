@@ -14,6 +14,8 @@
       <label class="field"><span>رقم الهاتف</span><input name="phone" value="<%= settings.phone %>" dir="ltr" placeholder="0555 12 34 56"></label>
       <label class="field"><span>رقم واتساب</span><input name="whatsapp" value="<%= settings.whatsapp %>" dir="ltr" placeholder="0555123456"></label>
       <label class="field span-2"><span>عنوان المحل</span><input name="address" value="<%= settings.address %>" maxlength="200"></label>
+      <input type="hidden" name="address_required_form" value="1">
+      <label class="check span-2"><input type="checkbox" name="address_required" value="1" <%= settings.address_required === '1' ? 'checked' : '' %>><span>عنوان الزبون إجباري في استمارة الطلب <small>(عند التوصيل للمنزل؛ بدونه تبقى الخانة اختيارية)</small></span></label>
       <label class="field"><span>رابط فيسبوك</span><input name="facebook" inputmode="url" value="<%= settings.facebook %>" dir="ltr" placeholder="https://facebook.com/..."></label>
       <label class="field"><span>رابط إنستغرام</span><input name="instagram" inputmode="url" value="<%= settings.instagram %>" dir="ltr"></label>
       <label class="field"><span>رابط تيك توك</span><input name="tiktok" inputmode="url" value="<%= settings.tiktok %>" dir="ltr"></label>
