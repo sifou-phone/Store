@@ -42,8 +42,9 @@
 
         <ul class="mini-trust">
           <li><%- icon('cash') %><%= t('trust_cod_t') %></li>
-          <li><%- icon('truck') %><%= product.free_shipping ? t('free_delivery') : t('delivery_n', { n: wilayaCount }) %></li>
+          <li><%- icon('truck') %><%= t(product.free_shipping ? 'free_delivery_n' : 'delivery_n', { n: wilayaCount }) %></li>
           <li><%- icon('eye') %><%= t('trust_inspect_t') %></li>
+          <% if (product.free_exchange) { %><li><%- icon('refresh') %><%= t('trust_exchange_t') %></li><% } %>
         </ul>
         <% if (product.stock != null && product.stock > 0 && product.stock <= 5) { %>
           <p class="stock-warn"><%= t('low_stock', { n: product.stock }) %></p>

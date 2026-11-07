@@ -1,5 +1,5 @@
 const crypto = require('node:crypto');
-const { db, transaction } = require('./db');
+const { db, transaction, getSetting } = require('./db');
 const { normalizePhone, toInt, clean, hydrateProduct, priceLines, RELEASED_STATUSES, ORDER_STATUSES } = require('./util');
 const { translator } = require('./i18n');
 
@@ -55,7 +55,7 @@ function createOrder(input, ip = '', t = translator('ar'), lang = 'ar') {
   if (!phone) errors.phone = t('err_phone');
   if (!wilaya) errors.wilaya = t('err_wilaya');
   if (commune.length < 2) errors.commune = t('err_commune');
-  if (deliveryType === 'home' && address.length < 4) errors.address = t('err_address');
+  if (deliveryType === 'home' && getSetting('address_required') === '1' && address.length < 4) errors.address = t('err_address');
   if (wilaya && deliveryType === 'desk' && !wilaya.desk_available) errors.form = t('err_no_desk');
 
   const lines = [];

@@ -164,7 +164,7 @@
       if (!/^0[5-7]\d{8}$/.test(phone) && !/^0[2-4]\d{7}$/.test(phone)) errors.phone = t('err_phone');
       if (!form.wilaya.value) errors.wilaya = t('err_wilaya');
       if (form.commune.value.trim().length < 2) errors.commune = t('err_commune');
-      if (deliveryType() === 'home' && form.address.value.trim().length < 4) errors.address = t('err_address');
+      if (deliveryType() === 'home' && form.dataset.addressRequired === '1' && form.address.value.trim().length < 4) errors.address = t('err_address');
       if (mode === 'cart' && !cartLines.length) errors.form = t('err_cart_empty');
       return errors;
     }
