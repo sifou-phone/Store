@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ar"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&family=Montserrat:ital,wght@0,800;0,900;1,900&display=block" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#7a0008}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:Cairo,sans-serif;color:#fff;
+ background:radial-gradient(circle at 50% 40%,#ff2a2a 0%,#d4000e 35%,#7a0008 80%)}
+.rays{position:absolute;left:50%;top:42%;width:3200px;height:3200px;margin:-1600px 0 0 -1600px;opacity:.28;
+ background:repeating-conic-gradient(from 0deg,rgba(255,220,120,.9) 0 6deg,transparent 6deg 18deg);
+ -webkit-mask:radial-gradient(circle,#000 0,transparent 60%);animation:spin 16s linear forwards}
+@keyframes spin{to{transform:rotate(120deg)}}
+.spark{position:absolute;width:10px;height:10px;border-radius:50%;background:#ffd34d;box-shadow:0 0 18px 6px #ffb300;
+ animation:float 16s linear forwards;opacity:.8}
+@keyframes float{from{transform:translateY(0)}to{transform:translateY(-2400px)}}
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0}
+.y{color:#ffd21f}
+.pill{background:#111;border:6px solid #ffd21f;border-radius:90px;padding:20px 60px;box-shadow:0 0 60px rgba(255,210,31,.6)}
+.brand{font-family:Montserrat;font-weight:900;font-style:italic;font-size:150px;line-height:1;letter-spacing:-3px}
+.tag{font-family:Montserrat;font-weight:800;font-style:italic;font-size:46px;margin-top:10px;text-align:center}
+.oor{font-family:Montserrat;font-weight:900;font-size:120px;letter-spacing:-2px;text-shadow:0 8px 30px rgba(0,0,0,.4)}
+.big{font-family:Montserrat;font-weight:900;line-height:.9;text-shadow:0 12px 0 #8a0010,0 20px 50px rgba(0,0,0,.5)}
+.ar{font-weight:900;text-shadow:0 8px 25px rgba(0,0,0,.45)}
+.banner{background:linear-gradient(#ff3030,#c3000c);border:6px solid #fff;border-radius:40px;padding:20px 60px;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+
+/* timings (s): S1 0-2.6, S2 2.6-5.6, S3 5.6-8.4, S4 8.4-10.8, S5 10.8-13.6, S6 13.6-16.5, S7 16.5-19 */
+@keyframes show{0%{opacity:0}4%{opacity:1}96%{opacity:1}100%{opacity:0}}
+@keyframes slam{0%{transform:scale(3);opacity:0}60%{transform:scale(.92);opacity:1}80%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes up{0%{transform:translateY(120px);opacity:0}100%{transform:none;opacity:1}}
+@keyframes fromR{0%{transform:translateX(1100px)}70%{transform:translateX(-30px)}100%{transform:none}}
+@keyframes fromL{0%{transform:translateX(-1100px)}70%{transform:translateX(30px)}100%{transform:none}}
+@keyframes pop{0%{transform:scale(0) rotate(-20deg)}70%{transform:scale(1.15) rotate(4deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-14px,6px)}40%{transform:translate(12px,-8px)}60%{transform:translate(-8px,4px)}80%{transform:translate(6px,-4px)}}
+@keyframes card{0%{transform:perspective(1400px) rotateY(-90deg) scale(.4);opacity:0}60%{transform:perspective(1400px) rotateY(12deg) scale(1.05);opacity:1}100%{transform:perspective(1400px) rotateY(0) scale(1)}}
+@keyframes sway{0%,100%{transform:perspective(1400px) rotateY(-6deg)}50%{transform:perspective(1400px) rotateY(6deg)}}
+@keyframes flash{0%{opacity:.7}100%{opacity:0}}
+@keyframes kb{0%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes draw{from{width:0}to{width:100%}}
+
+#s1{animation:show 2.6s 0s both}
+#s2{animation:show 3s 2.6s both}
+#s3{animation:show 2.8s 5.6s both}
+#s4{animation:show 2.4s 8.4s both}
+#s5{animation:show 2.8s 10.8s both}
+#s6{animation:show 2.9s 13.6s both}
+#s7{animation:show 2.6s 16.5s both;animation-name:show7}
+@keyframes show7{0%{opacity:0}8%{opacity:1}100%{opacity:1}}
+.f1{animation:flash .5s 0s forwards}.f2{animation:flash .5s 2.6s forwards}.f3{animation:flash .5s 5.6s forwards}
+.f4{animation:flash .5s 8.4s forwards}.f5{animation:flash .5s 10.8s forwards}.f6{animation:flash .5s 13.6s forwards}.f7{animation:flash .6s 16.5s forwards}
+</style></head><body>
+<div id="stage">
+ <div class="rays"></div>
+ <div id="sparks"></div>
+
+ <!-- S1 brand -->
+ <div class="scene" id="s1">
+  <div class="oor" style="animation:up .6s .1s both">ooredoo</div>
+  <div class="pill" style="margin-top:50px;animation:slam .7s .4s both">
+   <div class="brand">SIFOU <span class="y">phone</span></div>
+  </div>
+  <div class="tag" style="animation:up .6s 1s both">Votre Satisfaction Notre Priorité</div>
+  <div class="ar" style="font-size:80px;margin-top:70px;animation:pop .6s 1.5s both"><span class="y">📢</span> عرض حصري!</div>
+ </div>
+
+ <!-- S2 gold card -->
+ <div class="scene" id="s2">
+  <div style="font-size:70px;font-weight:900;animation:up .5s 2.7s both" class="ar">الباقة الذهبية</div>
+  <div style="animation:card 1s 2.8s both;margin-top:30px">
+   <div style="animation:sway 2s 3.8s ease-in-out both">
+    <img src="gold.png" style="width:900px;display:block;filter:drop-shadow(0 0 60px rgba(255,200,0,.8));
+      -webkit-mask:radial-gradient(ellipse 70% 70% at 50% 50%,#000 60%,transparent 100%)">
+   </div>
+  </div>
+ </div>
+
+ <!-- S3 90 Go -->
+ <div class="scene" id="s3">
+  <div class="big" style="font-size:430px;animation:slam .6s 5.7s both"><span id="cnt">90</span></div>
+  <div class="big y" style="font-size:260px;margin-top:-20px;animation:fromR .6s 6.2s both">Go</div>
+  <div class="banner ar" style="font-size:110px;margin-top:40px;animation:fromL .6s 6.6s both">إنترنت</div>
+ </div>
+
+ <!-- S4 calls -->
+ <div class="scene" id="s4">
+  <div class="big y" style="font-size:300px;animation:pop .5s 8.5s both">+</div>
+  <div style="font-size:200px;animation:pop .6s 8.8s both,shake .5s 9.4s 2 both">📞</div>
+  <div class="ar" style="font-size:120px;margin-top:20px;animation:fromR .6s 9.1s both">مكالمات مجانية</div>
+  <div class="ar y pill" style="font-size:90px;margin-top:30px;padding:10px 60px;animation:fromL .6s 9.5s both">لكل الشبكات</div>
+ </div>
+
+ <!-- S5 price -->
+ <div class="scene" id="s5">
+  <div class="ar" style="font-size:140px;animation:up .5s 10.9s both">بسعر</div>
+  <div style="background:#ffd21f;transform:rotate(-4deg);padding:10px 50px;border-radius:30px;margin-top:20px;animation:slam .6s 11.3s both;box-shadow:0 30px 60px rgba(0,0,0,.4)">
+   <div style="animation:pulse .7s 12s 3 both;display:flex;align-items:baseline;gap:20px;direction:ltr">
+    <span class="big" style="font-size:260px;color:#e0000f;text-shadow:0 10px 0 #7a0008">1200</span>
+    <span class="big" style="font-size:130px;color:#e0000f;text-shadow:0 8px 0 #7a0008">DA</span>
+   </div>
+  </div>
+  <div class="ar" style="font-size:70px;margin-top:60px;animation:up .5s 12.1s both">فقط! 🔥</div>
+ </div>
+
+ <!-- S6 info -->
+ <div class="scene" id="s6">
+  <div class="banner ar" style="font-size:80px;width:900px;text-align:center;animation:fromR .6s 13.7s both;background:#111;border-color:#ffd21f">
+   📍 بني مسوس<br><span class="y" style="font-size:66px">مقابل المستشفى</span></div>
+  <div class="banner ar" style="font-size:66px;width:900px;text-align:center;margin-top:60px;animation:fromL .6s 14.1s both">
+   📅 أيام العرض<br><span class="y" style="font-size:110px;direction:ltr;display:inline-block">24 / 25 / 26</span><br>نوفمبر</div>
+ </div>
+
+ <!-- S7 final poster -->
+ <div class="scene" id="s7" style="justify-content:flex-start">
+  <div style="position:absolute;inset:0;overflow:hidden">
+   <img src="poster.png" style="width:1080px;height:1920px;object-fit:cover;animation:kb 2.6s 16.5s ease-out both">
+  </div>
+  <div style="position:absolute;bottom:120px;left:0;right:0;text-align:center">
+   <div class="ar pill" style="display:inline-block;font-size:90px;animation:slam .6s 17.2s both,pulse .8s 17.8s 2 both">لا تفوت الفرصة!</div>
+  </div>
+ </div>
+
+ <div class="flash f1"></div><div class="flash f2"></div><div class="flash f3"></div><div class="flash f4"></div>
+ <div class="flash f5"></div><div class="flash f6"></div><div class="flash f7"></div>
+</div>
+<script>
+// deterministic sparks
+let seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const sp=document.getElementById('sparks');
+for(let i=0;i<45;i++){const d=document.createElement('div');d.className='spark';
+ const s=4+r()*12;d.style.cssText=`left:${r()*1080}px;top:${1920+r()*1000-400}px;width:${s}px;height:${s}px;animation-duration:${10+r()*12}s`;sp.appendChild(d)}
+window.DURATION=19;
+window.seek=t=>{
+ document.getAnimations().forEach(a=>{a.pause();a.currentTime=t*1000});
+ // counter 0->90 between 5.7s and 6.5s
+ const p=Math.min(1,Math.max(0,(t-5.7)/0.8));document.getElementById('cnt').textContent=Math.round(90*(1-Math.pow(1-p,3)));
+};
+</script>
+</body></html>
